@@ -1,8 +1,8 @@
-###This document derscribes workflow for processing RNAseq data for assessment of diel patterns in gene expression within microbial communities decomposing grass litter in southern California Mediterranean ecosystem.
+### This document derscribes workflow for processing RNAseq data for assessment of diel patterns in gene expression within microbial communities decomposing grass litter in southern California Mediterranean ecosystem.
 
-####Illumina shotgun sequencing of 108 eRNA samples (metatranscriptomes) and 3 eDNA samples (metagenomes) was performed by DOE-JGI. Assembly, gene prediction, and taxonomic/functional annotation (phylodist, KEGG, etc) were performed by JGI.
+#### Illumina shotgun sequencing of 108 eRNA samples (metatranscriptomes) and 3 eDNA samples (metagenomes) was performed by DOE-JGI. Assembly, gene prediction, and taxonomic/functional annotation (phylodist, KEGG, etc) were performed by JGI.
 
-####Workflow on UCI HPC
+##### Workflow on UCI HPC
 
 #Rename IMG files; original .gff files are stored as gene_calls.gff
 ```
@@ -27,7 +27,7 @@ grep "CDS" P3_metaG/gene_calls.gff > P3_metaG/gene_calls.CDS.gff
 ```
 qsub ~/batch_scripts/extract_gff_seqs.sh
 ```
-######output is written to $DIR/genes.fna
+###### output is written to $DIR/genes.fna
 
 ```cat P1_metaG/genes.fna P2_metaG/genes.fna P3_metaG/genes.fna > genes_P1P2P3.fna```
 
