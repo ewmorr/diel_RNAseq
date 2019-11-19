@@ -37,12 +37,11 @@ qsub ~/batch_scripts/extract_gff_seqs.sh
 qsub ~/batch_scripts/derep_usearch.sh
 ````
 
-#perform mapping of RNA reads
+#perform mapping of RNA reads. This script outputs mapped RNA reads per contig with samtools idxstats
 
 ```
 qsub ~/batch_scripts/map_diel_RNA_to_genes.sh
 ```
-
 #Calculate coverage
 
 ```
@@ -61,6 +60,27 @@ qsub ~/batch_scripts/sum_coverage_by_annotation.sh
 perl ~/bin/join_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ coverage.COG
 ```
 
+### Rerunning mapping for read counts instead of coverage as this will be more appropriate metric
+
+#rerun mapping of RNA reads to get read counts instead of coverage. This script outputs mapped RNA reads per contig with samtools idxstats
+
+```
+qsub ~/batch_scripts/map_diel_RNA_to_genes_read_counts.sh
+```
+
+#Calculate mapped reads by annotations. As above except with read counts per contig not by per base coverage. This will be input to statistical analyses
+
+```
+qsub ~/batch_scripts/sum_read_counts_by_annotations.sh
+```
+
+#total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported wihtin three different files (these are the files on Eric's laptop)
+
+```
+perl ~/bin/join_count_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ read_counts.KO.phylodist
+```
+
+#### This same workflow or similar applies for both coverage based and read count based mapping
 
 #Get read mapping totals and total reads
 
@@ -69,7 +89,7 @@ perl ~/bin/join_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ coverage.COG
 ```
 for i in *metaT;do grep "Output" $i/*report.txt | cut -f 2 -d "|" | sed 's/ //g' | sed 's/,//g' > $i/num_input_reads.txt; done
 ```
-#number of mapped reads comes from coverage_per_contig.sh
+#number of mapped reads comes from coverage_per_contig.sh. Or this can be summed from the files `read_per_contig.txt`
 
 #Number of input bases
 
