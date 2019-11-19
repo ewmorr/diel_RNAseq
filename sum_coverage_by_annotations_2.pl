@@ -48,7 +48,7 @@ sub add_cov_to_anns{
 			$annCov{$categoryIndex}{"avg"} = ${ $cov{$covInd} }[1];
 			$annCov{$categoryIndex}{"len"} = ${ $cov{$covInd} }[1] * ${ $cov{$covInd} }[0];
 			$annCov{$categoryIndex}{"count"} = 1;
-		}elsif(defined($cov{$categoryIndex}) == 1){
+		}elsif(defined($annCov{$categoryIndex}) == 1){
 			$annCov{$categoryIndex}{"total"} += ${ $cov{$covInd} }[0];
 			$annCov{$categoryIndex}{"avg"} += ${ $cov{$covInd} }[1];
 			$annCov{$categoryIndex}{"len"} += ${ $cov{$covInd} }[1] * ${ $cov{$covInd} }[0];
