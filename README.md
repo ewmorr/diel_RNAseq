@@ -91,6 +91,8 @@ for i in *metaT;do grep "Output" $i/*report.txt | cut -f 2 -d "|" | sed 's/ //g'
 ```
 #number of mapped reads comes from coverage_per_contig.sh. Or this can be summed from the files `read_per_contig.txt`
 
+perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ reads_per_contig.txt > mapped_reads_read_counts_112119.txt
+
 #Number of input bases
 
 ```
