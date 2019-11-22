@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 #Eric Morrison
 #122118
-
+#updated 11/22/19 to report sum avg cov instead of dividing by num genes
+#
 use strict;
 use warnings;
 
@@ -18,7 +19,7 @@ sub ann_hash{
 			my @ann = split("\t", $ann);
 			$annList{$ann[0]} = 1;
 			$annDat{$ann[0]}{$dir}{"totalCov"} = $ann[1];
-			$annDat{$ann[0]}{$dir}{"avgCov"} = $ann[2]/$ann[3];
+			$annDat{$ann[0]}{$dir}{"avgCov"} = $ann[2];
 			$annDat{$ann[0]}{$dir}{"numGenes"} = $ann[3];
 		}
 	}

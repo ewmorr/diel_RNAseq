@@ -77,7 +77,7 @@ qsub ~/batch_scripts/sum_read_counts_by_annotations.sh
 #total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported wihtin three different files (these are the files on Eric's laptop)
 
 ```
-perl ~/bin/join_count_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ read_counts.KO.phylodist
+perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.KO.phylodist
 ```
 
 #### This same workflow or similar applies for both coverage based and read count based mapping
@@ -90,9 +90,9 @@ perl ~/bin/join_count_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ read_counts
 for i in *metaT;do grep "Output" $i/*report.txt | cut -f 2 -d "|" | sed 's/ //g' | sed 's/,//g' > $i/num_input_reads.txt; done
 ```
 #number of mapped reads comes from coverage_per_contig.sh. Or this can be summed from the files `read_per_contig.txt`
-
+```
 perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ reads_per_contig.txt > mapped_reads_read_counts_112119.txt
-
+```
 #Number of input bases
 
 ```
