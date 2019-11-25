@@ -129,6 +129,16 @@ perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_c
 
 ```
 
+#read mapping summaries
+```
+read_mapping_stats.r
+```
+
+#delta-delta plots and NMDS
+#Summarized on KO
+```
+delta_delta_plots.KO.r
+```
 
 
 
