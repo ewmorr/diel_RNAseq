@@ -39,8 +39,8 @@ sub add_cov_to_anns{
 	my %annCov;
 	foreach my $covInd (keys %cov){
 		
-		#if either of the annotation categories is undefined skip to next
-		if(defined($$annRef{$covInd}) == 0){next;}
+        #if annotation is undefined or no reads mappedskip to next
+        if(defined($$annRef{$covInd}) == 0 || ${ $cov{$covInd} }[1] == 0){next;}
 		
 		my $categoryIndex = $$annRef{$covInd};
 		if(defined($annCov{$categoryIndex} ) == 0){

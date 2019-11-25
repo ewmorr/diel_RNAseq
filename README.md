@@ -4,6 +4,7 @@
 
 ##### Workflow on UCI HPC
 
+##### processing three assembled metagenomes from JGI as target for read mapping
 #Rename IMG files; original .gff files are stored as gene_calls.gff
 ```
 cp P1T30_metag/3300028588/3300028588.a.fna P1T30_metag/contigs.fna
@@ -27,7 +28,7 @@ grep "CDS" P3_metaG/gene_calls.gff > P3_metaG/gene_calls.CDS.gff
 ```
 qsub ~/batch_scripts/extract_gff_seqs.sh
 ```
-###### output is written to $DIR/genes.fna
+###### output is written to genes.fna
 
 ```cat P1_metaG/genes.fna P2_metaG/genes.fna P3_metaG/genes.fna > genes_P1P2P3.fna```
 
@@ -37,7 +38,7 @@ qsub ~/batch_scripts/extract_gff_seqs.sh
 qsub ~/batch_scripts/derep_usearch.sh
 ````
 
-#perform mapping of RNA reads. This script outputs mapped RNA reads per contig with samtools idxstats
+#perform mapping of RNA reads.
 
 ```
 qsub ~/batch_scripts/map_diel_RNA_to_genes.sh
@@ -54,15 +55,15 @@ qsub ~/batch_scripts/coverage_per_contig.sh
 qsub ~/batch_scripts/sum_coverage_by_annotation.sh
 ```
 
-#total base coverage, per length (base) average coverage, and number of genes within an annotation are joined across samples and then reported wihtin three different files (these are the files on Eric's laptop)
+#total base coverage, per length (base) average coverage, and number of genes within an annotation are joined across samples and then reported wihtin three different files
 
 ```
 perl ~/bin/join_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ coverage.COG
 ```
 
-### Rerunning mapping for read counts instead of coverage as this will be more appropriate metric
+### Rerunning mapping for read counts. Reads mapped per target length is input for downstream analyses
 
-#rerun mapping of RNA reads to get read counts instead of coverage. This script outputs mapped RNA reads per contig with samtools idxstats
+#output mapped RNA reads per contig with samtools idxstats
 
 ```
 qsub ~/batch_scripts/map_diel_RNA_to_genes_read_counts.sh
@@ -72,12 +73,15 @@ qsub ~/batch_scripts/map_diel_RNA_to_genes_read_counts.sh
 
 ```
 qsub ~/batch_scripts/sum_read_counts_by_annotations.sh
+qsub ~/batch_scripts/sum_read_counts_by_single_annotation.sh
 ```
 
-#total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported wihtin three different files (these are the files on Eric's laptop)
+#total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported within three different files (these are the files on Eric's laptop)
 
 ```
 perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.KO.phylodist
+perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.KO
+perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.phylodist
 ```
 
 #### This same workflow or similar applies for both coverage based and read count based mapping
@@ -111,3 +115,20 @@ for i in ./*;do echo $i >> totals_mapped_input.txt; cat $i/num_input_reads.txt >
 ```
 
 #total counts file can be reformatted with ```reformat_total_counts.pl```
+
+##### Running locally
+
+```
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCount.join > read_counts.phylodist.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountRefLen.join > read_counts.phylodist.readCountRefLen.join.cleanStrings
+
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCount.join > read_counts.phylodist.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountRefLen.join > read_counts.phylodist.readCountRefLen.join.cleanStrings
+
+```
+
+
+
+

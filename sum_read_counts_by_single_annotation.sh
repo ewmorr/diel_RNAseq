@@ -11,6 +11,6 @@ for i in $READSDIR/*metaT
 do
 	echo $i	
 	perl $HOME/bin/sum_read_counts_by_single_annotation.pl $i/reads_per_contig.txt $BIODIR/martiny_diel_metaG/P1P2P3.KO 2 > $i/read_counts.KO
-    perl $HOME/bin/sum_read_counts_by_single_annotation.pl $i/reads_per_contig.txt $$BIODIR/martiny_diel_metaG/P1P2P3.phylodist 4 > $i/read_counts.phylodist
+    perl $HOME/bin/sum_read_counts_by_single_annotation.pl $i/reads_per_contig.txt $BIODIR/martiny_diel_metaG/P1P2P3.phylodist 4 > $i/read_counts.phylodist
 done
 
