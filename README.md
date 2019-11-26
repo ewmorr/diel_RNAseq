@@ -134,10 +134,14 @@ perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_c
 read_mapping_stats.r
 ```
 
-#delta-delta plots and NMDS
+#### delta-delta plots
+#First arg is cateogry to summarize counts by, second arg is output file for graphs
+#input files are hardcoded in script and currently loaded from working dir
+
 #Summarized on KO
 ```
-delta_delta_plots.KO.r
+delta_delta_plots_summarize_by_category KO delta-delta_plots.KO.pdf.r
+delta_delta_plots_summarize_by_category Genus delta-delta_plots.Genus.pdf.r
 ```
 
 

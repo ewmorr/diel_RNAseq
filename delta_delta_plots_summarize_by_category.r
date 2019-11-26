@@ -3,6 +3,7 @@ require(gridExtra)
 require(scales)
 require(vegan)
 require(reshape2)
+require(rlang)
 
 source("../ggplot_theme.txt")
 
@@ -18,6 +19,11 @@ fancy_scientific <- function(l) {
 	# return this as an expression
 	parse(text=l)
 }
+
+#arguments for summarizing and output
+args = commandArgs(T)
+catToSum = args[1]
+outputFile = args[2]
 
 #total read amounts table
 total_mapped = read.csv("totals_mapped_input.reformat.txt", sep = "\t", header = F)
@@ -58,9 +64,12 @@ print(c("minimum sequence depth: ", minDepth))
 
 read_count.rarefied = data.frame(read_count[,1:8], t(rrarefy(t(read_count[,9:115]), sample = minDepth)) )
 
-read_count.rarefied.sumCat = read_count.rarefied %>% group_by(sumCat = KO) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-ref_len.sumCat = ref_len %>% group_by(sumCat = KO) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+#To have dplyr interpret args correctly need to !! and parse_expr() (bc of NSE)
+read_count.rarefied.sumCat = read_count.rarefied %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+ref_len.sumCat = ref_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 
+print("summarized count tbl:")
+print(read_count.rarefied.sumCat)
 #Divide read count by refLen to normalize reads recruited by contig length
 reads_per_len = data.frame(read_count.rarefied.sumCat[,1], read_count.rarefied.sumCat[,2:108]/ref_len.sumCat[,2:108] ) %>% as.tbl
 reads_per_len[is.na(reads_per_len)] = 0
@@ -198,7 +207,7 @@ P3_temp_dist.long$Plot = "P3"
 P1P2P3_temp_dist.long = rbind(P1_temp_dist.long, P2_temp_dist.long, P3_temp_dist.long)
 colnames(P1P2P3_temp_dist.long) = c("Var1", "Var2", "bray.curtis", "delta.temp", "Plot")
 
-max(P1P2P3_temp_dist.long$delta.temp)
+#max(P1P2P3_temp_dist.long$delta.temp)
 P1P2P3_temp_dist.long$temp.breaks = cut(P1P2P3_temp_dist.long$delta.temp, breaks = seq(0,40,2), labels = seq(2, 40, 2))
 
 #moisture
@@ -213,14 +222,15 @@ P3_moist_dist.long$Plot = "P3"
 P1P2P3_moist_dist.long = rbind(P1_moist_dist.long, P2_moist_dist.long, P3_moist_dist.long)
 colnames(P1P2P3_moist_dist.long) = c("Var1", "Var2", "bray.curtis", "delta.moist", "Plot")
 
-range(as.numeric(P1P2P3_moist_dist.long$delta.moist))
+#range(as.numeric(P1P2P3_moist_dist.long$delta.moist))
 P1P2P3_moist_dist.long$moist.breaks = cut(P1P2P3_moist_dist.long$delta.moist, breaks = seq(0,1.8,.1), labels = seq(10, 180, 10))
 
 
 
 #PLOTS
 #TIME
-pdf("delta_time_bray.KO.pdf", width = 8, height = 5)
+pdf(file = outputFile, width = 6, height = 5)
+#pdf("delta_time_bray.KO.pdf", width = 8, height = 5)
 print(
 ggplot(P1P2P3_time_dist.long, aes(delta.time, bray.curtis, color = Plot)) +
 facet_wrap(~Plot, ncol = 1, scales = "free_y") +
@@ -232,12 +242,12 @@ scale_x_continuous(breaks = c(0, 12, 24, 36, 48, 60, 72)) +
 #geom_smooth(method = "loess") +
 my_gg_theme
 )
-dev.off()
+#dev.off()
 
-pdf("delta_time_bray_boxplot.KO.pdf", width = 12, height = 4)
+#pdf("delta_time_bray_boxplot.KO.pdf", width = 12, height = 4)
 print(
 ggplot(P1P2P3_time_dist.long, aes(time.breaks, bray.curtis, color = Plot)) +
-facet_wrap(~Plot, ncol = 3) +
+facet_wrap(~Plot, ncol = 1) +
 geom_boxplot(outlier.size = 0.5) +
 scale_color_manual(values = c("P1" = "#E69F00", "P2" = "#56B4E9", "P3" = "#009E73"), guide = F) +
 labs(x = "Delta time (hrs)", y = "Bray-Curtis distance") +
@@ -246,13 +256,13 @@ scale_x_discrete(breaks = c(0, 12, 24, 36, 48, 60, 72)) +
 #geom_smooth() +
 my_gg_theme
 )
-dev.off()
+#dev.off()
 
 #TEMPERATURE
-pdf("delta_temp_bray.KO.pdf", width = 8, height = 5)
+#pdf("delta_temp_bray.KO.pdf", width = 8, height = 5)
 print(
 ggplot(P1P2P3_temp_dist.long, aes(delta.temp, bray.curtis, color = Plot)) +
-facet_wrap(~Plot, ncol = 3) +
+facet_wrap(~Plot, ncol = 1) +
 geom_point(size= 0.2) +
 scale_color_manual(values = c("P1" = "#E69F00", "P2" = "#56B4E9", "P3" = "#009E73"), guide = F) +
 labs(x = expression("Delta temperature ("*~degree*C*")"), y = "Bray-Curtis distance") +
@@ -261,12 +271,12 @@ labs(x = expression("Delta temperature ("*~degree*C*")"), y = "Bray-Curtis dista
 #geom_smooth(method = "loess") +
 my_gg_theme
 )
-dev.off()
+#dev.off()
 
-pdf("delta_temp_bray_boxplot.KO.pdf", width = 12, height = 4)
+#pdf("delta_temp_bray_boxplot.KO.pdf", width = 12, height = 4)
 print(
 ggplot(filter(P1P2P3_temp_dist.long, !is.na(temp.breaks)), aes(temp.breaks, bray.curtis, color = Plot)) +
-facet_wrap(~Plot, ncol = 3) +
+facet_wrap(~Plot, ncol = 1) +
 geom_boxplot(outlier.size = 0.5, notch = F) +
 scale_color_manual(values = c("P1" = "#E69F00", "P2" = "#56B4E9", "P3" = "#009E73"), guide = F) +
 labs(x = expression("Delta temperature ("*~degree*C*")"), y = "Bray-Curtis distance") +
@@ -275,13 +285,13 @@ scale_x_discrete(breaks = c(1, 5, 10, 15, 20, 25, 30)) +
 #geom_smooth() +
 my_gg_theme
 )
-dev.off()
+#dev.off()
 
 #moisture
-pdf("delta_moist_bray.KO.pdf", width = 8, height = 5)
+#pdf("delta_moist_bray.KO.pdf", width = 8, height = 5)
 print(
 ggplot(P1P2P3_moist_dist.long, aes(delta.moist, bray.curtis, color = Plot)) +
-facet_wrap(~Plot, ncol = 3) +
+facet_wrap(~Plot, ncol = 1) +
 geom_point(size= 0.2) +
 scale_color_manual(values = c("P1" = "#E69F00", "P2" = "#56B4E9", "P3" = "#009E73"), guide = F) +
 labs(x = "Delta moisture", y = "Bray-Curtis distance") +
@@ -290,12 +300,12 @@ labs(x = "Delta moisture", y = "Bray-Curtis distance") +
 geom_smooth(method = "loess") +
 my_gg_theme
 )
-dev.off()
+#dev.off()
 
-pdf("delta_moist_bray_boxplot.KO.pdf", width = 12, height = 4)
+#pdf("delta_moist_bray_boxplot.KO.pdf", width = 12, height = 4)
 print(
 ggplot(filter(P1P2P3_moist_dist.long, !is.na(moist.breaks)), aes(moist.breaks, bray.curtis, color = Plot)) +
-facet_wrap(~Plot, ncol = 3) +
+facet_wrap(~Plot, ncol = 1) +
 #geom_jitter(size = 0.25, color = "black") +
 geom_boxplot(outlier.size = 0.5) +
 scale_color_manual(values = c("P1" = "#E69F00", "P2" = "#56B4E9", "P3" = "#009E73"), guide = F) +
@@ -306,4 +316,5 @@ scale_x_discrete(breaks = c(20, 40, 60, 80, 100, 120, 140, 160, 180)) +
 #geom_smooth() +
 my_gg_theme
 )
+
 dev.off()
