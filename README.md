@@ -138,10 +138,9 @@ read_mapping_stats.r
 #First arg is cateogry to summarize counts by, second arg is output file for graphs
 #input files are hardcoded in script and currently loaded from working dir
 
-#Summarized on KO
 ```
-delta_delta_plots_summarize_by_category KO delta-delta_plots.KO.pdf.r
-delta_delta_plots_summarize_by_category Genus delta-delta_plots.Genus.pdf.r
+Rscript delta_delta_plots_summarize_by_category.r KO delta-delta_plots.KO.pdf
+Rscript delta_delta_plots_summarize_by_category.r Genus delta-delta_plots.Genus.pdf
 ```
 
 
