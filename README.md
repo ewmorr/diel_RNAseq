@@ -157,5 +157,24 @@ do(
 done
 ```
 
+#Run Cyanobacteria
+```
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category.r Phylum Cyanobacteria KO delta-delta_plots.Cyanobacteria-KO.pdf
+```
+#Minimum sequence depth is 17...
+#modify script to take user defined minDepth
+#last arg is desired rarefaction depth. If min depth is below that prints
+
+```
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category_minDepthLimit.r Phylum Cyanobacteria KO delta-delta_plots.Cyanobacteria-KO.pdf 1000
+    "minimum sequence depth: "                       "17"
+    [1] "minimum sequence depth is lower than minimum allowed."
+    [1] "Please enter a new rarefaction depth based on the depth per sample below."
+```
+#also a list of seq depth by sample..
+```
+100
+```
+
 
 
