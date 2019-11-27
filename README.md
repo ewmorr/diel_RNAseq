@@ -118,6 +118,7 @@ for i in ./*;do echo $i >> totals_mapped_input.txt; cat $i/num_input_reads.txt >
 
 ##### Running locally
 
+#Reformat taxonomic strings. The strain field does not play nice in R, and there are sepcial characters in some species fields
 ```
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCount.join > read_counts.phylodist.readCount.join.cleanStrings
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
@@ -129,7 +130,8 @@ perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_c
 
 ```
 
-#read mapping summaries
+#### read mapping summaries
+#Running this interactively
 ```
 read_mapping_stats.r
 ```
@@ -139,8 +141,20 @@ read_mapping_stats.r
 #input files are hardcoded in script and currently loaded from working dir
 
 ```
-Rscript delta_delta_plots_summarize_by_category.r KO delta-delta_plots.KO.pdf
-Rscript delta_delta_plots_summarize_by_category.r Genus delta-delta_plots.Genus.pdf
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.r KO delta-delta_plots.KO.pdf
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.r Genus delta-delta_plots.Genus.pdf
+```
+
+#Filter counts table by genus then summarize by KO and run delta-delta for top ten genera
+```
+topTenGen=(Curtobacterium Massilia Pseudomonas Alternaria Rhizobium Parastagonospora Frigoribacterium Pyrenophora Bipolaris Sphingomonas)
+for i in ${topTenGen[@]}
+do(
+    echo $i
+    Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category.r Genus $i KO delta-delta_plots.${i}-KO.pdf
+    
+)
+done
 ```
 
 
