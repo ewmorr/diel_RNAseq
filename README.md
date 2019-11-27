@@ -167,6 +167,7 @@ Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category.r
 
 ```
 Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category_minDepthLimit.r Phylum Cyanobacteria KO delta-delta_plots.Cyanobacteria-KO.pdf 1000
+
     "minimum sequence depth: "                       "17"
     [1] "minimum sequence depth is lower than minimum allowed."
     [1] "Please enter a new rarefaction depth based on the depth per sample below."
