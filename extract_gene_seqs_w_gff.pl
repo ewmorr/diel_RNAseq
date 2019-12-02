@@ -1,11 +1,8 @@
 #!/usr/bin/perl
 #Eric Morrison
-#062217
+#122018
 #Usage get_maker_mRNA_coverage.pl [gff] [assembly.fasta]
-#This script uses a maker gff and a coverage file from 'samtools depth -a' to find the 
-#the average coverage of mRNAs. A file of IDs on separate lines can be entered to acquire 
-#only those ids or enter 'all' as the last argument to get coverage for all mRNAs. Returns 
-#contig ID, mRNA ID, avg. coverage of gene, and gene avg. cov./(mean/median/mode) genome cov
+#This script uses a maker gff and a fasta file of contigs or scaffolds to extract nucleic acid sequences of predicted genes
 
 use strict;
 use warnings;

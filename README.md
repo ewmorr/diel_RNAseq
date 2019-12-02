@@ -178,4 +178,95 @@ Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category_m
 ```
 
 
+### uploading and processing IMG metatranscriptome assembly data for analysis of taxonomic content
+#### the original downloaded data is in `rna_assemblies_IMG_data.tar.gz`
+
+```
+tar -xzvf rna_assemblies_IMG_data.tar.gz
+
+#P2T1 has two files per filetype. Using second file (redo of sequencing effort), to avoid probalems with overlapping contig IDs
+
+#rename misnamed sample
+for i in rna_assemblies_IMG_data/*/P4T35metax_FD
+do(
+    path=${i%/*}
+    mv $i ./$path/P1T0metax_FD
+)
+done
+
+
+#organizing assembled contigs, gene calls, annotations,
+for i in $BIODIR/rna_assemblies_IMG_data/rna_assemblies/*/IMG_Data/*.assembled.fna
+do(
+    file=${i##*/}
+    dir=${i%/*}
+    cd $dir
+    mv $file ../contigs.fna
+    cd $BIODIR
+    rm $i
+    rmdir $dir
+)
+done
+
+#gff
+for i in $BIODIR/rna_assemblies_IMG_data/rna_assemblies_gene_calls/*/IMG_Data/*.assembled.gff
+do(
+    dir=${i%/*}
+    sampleDir=${dir%/IMG_Data}
+    sampleDir=${sampleDir##*/}
+    mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/gene_calls.gff
+    rmdir $dir
+)
+done
+
+#names_map
+for i in $BIODIR/rna_assemblies_IMG_data/rna_assemblies_names_map/*/IMG_Data/*.assembled.names_map
+do(
+dir=${i%/*}
+sampleDir=${dir%/IMG_Data}
+sampleDir=${sampleDir##*/}
+mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/contigs-scf.names_map
+rmdir $dir
+)
+done
+
+#KO
+for i in $BIODIR/rna_assemblies_IMG_data/rna_assemblies_KO/*/IMG_Data/*.assembled.KO
+do(
+dir=${i%/*}
+sampleDir=${dir%/IMG_Data}
+sampleDir=${sampleDir##*/}
+mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/ctg_annotations.KO
+rmdir $dir
+)
+done
+
+#EC
+for i in $BIODIR/rna_assemblies_IMG_data/rna_assemblies_EC/*/IMG_Data/*.assembled.EC
+do(
+dir=${i%/*}
+sampleDir=${dir%/IMG_Data}
+sampleDir=${sampleDir##*/}
+mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/ctg_annotations.EC
+rmdir $dir
+)
+done
+
+mv rna_assemblies_IMG_data/rna_assemblies ./martiny_diel_metaT_assemblies
+```
+
+#extract CDS from gff files
+```
+for i in $BIODIR/martiny_diel_metaT_assemblies/*
+do(
+    cd $i
+    grep "CDS" gene_calls.gff > gene_calls.CDS.gff
+)
+done
+```
+
+#extract nuc acid seqs
+```
+qsub extract_gff_seqs_metatranscriptome_assemblies.sh
+```
 
