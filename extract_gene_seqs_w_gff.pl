@@ -37,9 +37,9 @@ sub process_gff{
 			next;
 		}
 		my @gff = split("\t", $gff);
-		$gff[8] =~ /ID=(.+?);/; #or use non greedy match of characters to ';'
+		$gff[8] =~ /locus_tag=(.+?);/; #or use non greedy match of characters to ';'
 		my $fid = $1; #feature ID
-		$fid =~ s/\.//; #feature IDs in gene annotation files from JGI do not use '.' to indicate mutiple features extracted from a contig
+		#$fid =~ s/\.//; #feature IDs in gene annotation files from JGI do not use '.' to indicate mutiple features extracted from a contig
 		$gff{$fid} = [$gff[0], $gff[3], $gff[4], $gff[6]]; #scaffold/contig ID, start coord., end coord., strand
 	}
 	return(\%gff);

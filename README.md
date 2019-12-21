@@ -236,7 +236,7 @@ do(
 dir=${i%/*}
 sampleDir=${dir%/IMG_Data}
 sampleDir=${sampleDir##*/}
-mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/ctg_annotations.KO
+mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/annotations.KO
 rmdir $dir
 )
 done
@@ -247,7 +247,7 @@ do(
 dir=${i%/*}
 sampleDir=${dir%/IMG_Data}
 sampleDir=${sampleDir##*/}
-mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/ctg_annotations.EC
+mv $i $BIODIR/rna_assemblies_IMG_data/rna_assemblies/$sampleDir/annotations.EC
 rmdir $dir
 )
 done
