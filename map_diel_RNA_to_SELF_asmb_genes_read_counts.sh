@@ -17,9 +17,10 @@ do
 	
 	SUBDIR=${i%/*}
 	SUBDIR=${SUBDIR##*/}
+    SAMPLE=${SUBDIR%_metaT*}
 	echo "starting $SUBDIR"
 
-    SUBJECT=$BIODIR/martiny_diel_metaT_assemblies/$SUBDIR/genes.fna
+    SUBJECT=$BIODIR/martiny_diel_metaT_assemblies/${SAMPLE}metax_FD/genes.fna
 
     bwa index $SUBJECT
 
