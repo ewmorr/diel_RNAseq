@@ -1,9 +1,9 @@
-### This document derscribes workflow for processing RNAseq data for assessment of diel patterns in gene expression within microbial communities decomposing grass litter in southern California Mediterranean ecosystem.
+### This document describes workflow for processing RNAseq data for assessment of diel patterns in gene expression within microbial communities decomposing grass litter in southern California Mediterranean ecosystem.
 
 #### Illumina shotgun sequencing of 108 eRNA samples (metatranscriptomes) and 3 eDNA samples (metagenomes) was performed by DOE-JGI. Assembly, gene prediction, and taxonomic/functional annotation (phylodist, KEGG, etc) were performed by JGI.
 
 ##### Workflow on UCI HPC
-
+This repo is cloned to HPC
 ##### processing three assembled metagenomes from JGI as target for read mapping
 #Rename IMG files; original .gff files are stored as gene_calls.gff
 ```
@@ -26,33 +26,43 @@ grep "CDS" P3_metaG/gene_calls.gff > P3_metaG/gene_calls.CDS.gff
 #Extract nucleotides sequences of CDS from contigs
 
 ```
-qsub ~/batch_scripts/extract_gff_seqs.sh
+qsub ~/diel_RNAseq/extract_gff_seqs.sh
 ```
 ###### output is written to genes.fna
 
 ```cat P1_metaG/genes.fna P2_metaG/genes.fna P3_metaG/genes.fna > genes_P1P2P3.fna```
 
+#Also cat annotations
+```
+cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*KO $BIODIR/martiny_diel_metaG/P2_metaG/P2T30_metag/*KO $BIODIR/martiny_diel_metaG/P3_metaG/P3T30_metag/*KO > $BIODIR/martiny_diel_metaG/P1P2P3.KO
+
+cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*phylodist $BIODIR/martiny_diel_metaG/P2_metaG/P2T30_metag/*phylodist $BIODIR/martiny_diel_metaG/P3_metaG/P3T30_metag/*phylodist > $BIODIR/martiny_diel_metaG/P1P2P3.phylodist
+
+cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*EC $BIODIR/martiny_diel_metaG/P2_metaG/P2T30_metag/*EC $BIODIR/martiny_diel_metaG/P3_metaG/P3T30_metag/*EC > $BIODIR/martiny_diel_metaG/P1P2P3.EC
+
+```
+
 #Dereplicate gene calls
 
 ```
-qsub ~/batch_scripts/derep_usearch.sh
+qsub ~/diel_RNAseq/derep_usearch.sh
 ````
 
 #perform mapping of RNA reads.
 
 ```
-qsub ~/batch_scripts/map_diel_RNA_to_genes.sh
+qsub ~/diel_RNAseq/map_diel_RNA_to_genes.sh
 ```
 #Calculate coverage
 
 ```
-qsub ~/batch_scripts/coverage_per_contig.sh
+qsub ~/diel_RNAseq/coverage_per_contig.sh
 ```
 
 #Calculate coverage of different annotations; this is the total coverage, and average per base coverage of each gene (from coverage_per_contig.pl) then summed by annotations, as well as the number of annotations; this has been performed for phylodist, KEGG (KO), and COG;
 
 ```
-qsub ~/batch_scripts/sum_coverage_by_annotation.sh
+qsub ~/diel_RNAseq/sum_coverage_by_annotation.sh
 ```
 
 #total base coverage, per length (base) average coverage, and number of genes within an annotation are joined across samples and then reported wihtin three different files
@@ -66,14 +76,14 @@ perl ~/bin/join_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ coverage.COG
 #output mapped RNA reads per contig with samtools idxstats
 
 ```
-qsub ~/batch_scripts/map_diel_RNA_to_genes_read_counts.sh
+qsub ~/diel_RNAseq/map_diel_RNA_to_genes_read_counts.sh
 ```
 
 #Calculate mapped reads by annotations. As above except with read counts per contig not by per base coverage. This will be input to statistical analyses
 
 ```
-qsub ~/batch_scripts/sum_read_counts_by_annotations.sh
-qsub ~/batch_scripts/sum_read_counts_by_single_annotation.sh
+qsub ~/diel_RNAseq/sum_read_counts_by_annotations.sh
+qsub ~/diel_RNAseq/sum_read_counts_by_single_annotation.sh
 ```
 
 #total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported within three different files (these are the files on Eric's laptop)
@@ -269,4 +279,9 @@ done
 ```
 qsub extract_gff_seqs_metatranscriptome_assemblies.sh
 ```
+
+#### Mapping reads to self assembly. This is for Alex's tax ID mapping. Will use annotation of genomes against tax DB with original mapping
+```
+qsub ~/diel_RNAseq/map_diel_RNA_to_SELF_asmb_genes_read_counts.sh
+
 
