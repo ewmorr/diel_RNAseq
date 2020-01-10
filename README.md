@@ -134,9 +134,9 @@ perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_coun
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountRefLen.join > read_counts.phylodist.readCountRefLen.join.cleanStrings
 
-perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCount.join > read_counts.phylodist.readCount.join.cleanStrings
-perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
-perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountRefLen.join > read_counts.phylodist.readCountRefLen.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCount.join > read_counts.KO.phylodist.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountNumGenes.join > read_counts.KO.phylodist.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_KO_phylodist.pl read_counts.KO.phylodist.readCountRefLen.join > read_counts.KO.phylodist.readCountRefLen.join.cleanStrings
 
 ```
 
