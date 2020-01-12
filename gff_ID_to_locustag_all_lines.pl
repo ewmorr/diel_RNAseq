@@ -13,10 +13,10 @@ sub hash_gff_names{
     my %gff;
     foreach my $line (@file){
         my @line = split("\t", $line);
-        #my $names = split(";", $line[9]);
-        $line[8] =~ m/ID=(.*?);.*locus_tag=(.*?);/;
+        $line[8] =~ /ID=(.*?);/;
         my $id = $1;
-        my $ltag = $2;
+        $line[8] =~ /locus_tag=(.*?);/;
+        my $ltag = $1;
         $id =~ s/\.//;
         $gff{$id} = $ltag;
     }
@@ -41,5 +41,5 @@ sub replace_fasta_headers{
     #my $out = $ARGV[2];
     
     my $gffRef = hash_gff_names($gffFile);
-    #replace_fasta_headers($gffRef, $fastaFile);
+    replace_fasta_headers($gffRef, $fastaFile);
 }
