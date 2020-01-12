@@ -29,7 +29,7 @@ sub replace_fasta_headers{
     open(IN, "$fastaFile") || die "Can't open fasta\n";
     chomp(my @fasta = <IN>);
     foreach my $line (@fasta){
-        @line = split("\t", $line);
+        my @line = split("\t", $line);
         $line =~ s/$line[0]/$gff{$line[0]}/g;
         print $line, "\n";
     }
@@ -41,5 +41,5 @@ sub replace_fasta_headers{
     #my $out = $ARGV[2];
     
     my $gffRef = hash_gff_names($gffFile);
-    replace_fasta_headers($gffRef, $fastaFile);
+    #replace_fasta_headers($gffRef, $fastaFile);
 }

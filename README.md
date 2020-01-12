@@ -48,30 +48,7 @@ cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*EC $BIODIR/martiny_diel_met
 qsub ~/diel_RNAseq/derep_usearch.sh
 ````
 
-#perform mapping of RNA reads.
-
-```
-qsub ~/diel_RNAseq/map_diel_RNA_to_genes.sh
-```
-#Calculate coverage
-
-```
-qsub ~/diel_RNAseq/coverage_per_contig.sh
-```
-
-#Calculate coverage of different annotations; this is the total coverage, and average per base coverage of each gene (from coverage_per_contig.pl) then summed by annotations, as well as the number of annotations; this has been performed for phylodist, KEGG (KO), and COG;
-
-```
-qsub ~/diel_RNAseq/sum_coverage_by_annotation.sh
-```
-
-#total base coverage, per length (base) average coverage, and number of genes within an annotation are joined across samples and then reported wihtin three different files
-
-```
-perl ~/bin/join_ann_tables.pl /bio/morrise1/martiny_diel_seqs/ coverage.COG
-```
-
-### Rerunning mapping for read counts. Reads mapped per target length is input for downstream analyses
+### mapping for read counts. Reads mapped per target length is input for downstream analyses
 
 #output mapped RNA reads per contig with samtools idxstats
 
@@ -89,9 +66,7 @@ qsub ~/diel_RNAseq/sum_read_counts_by_single_annotation.sh
 #total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported within three different files (these are the files on Eric's laptop)
 
 ```
-perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.KO.phylodist
-perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.KO
-perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.phylodist
+qsub ~/diel_RNAseq/join_ann_tables.sh
 ```
 
 #### This same workflow or similar applies for both coverage based and read count based mapping
@@ -103,7 +78,7 @@ perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_c
 ```
 for i in *metaT;do grep "Output" $i/*report.txt | cut -f 2 -d "|" | sed 's/ //g' | sed 's/,//g' > $i/num_input_reads.txt; done
 ```
-#number of mapped reads comes from coverage_per_contig.sh. Or this can be summed from the files `read_per_contig.txt`
+#number of mapped reads can be summed from the files `read_per_contig.txt`
 ```
 perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ reads_per_contig.txt > mapped_reads_read_counts_112119.txt
 ```
@@ -113,7 +88,7 @@ perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ re
 for i in *metaT;do grep "Output" $i/*report.txt | cut -f 4 -d "|" | sed 's/ //g' | sed 's/,//g' > $i/num_bases_mapped.txt; done
 ```
 
-#get metagenome wide coverage totals (length, total bases mapped, avg. cov.)
+#get metagenome wide coverage totals (length, total bases mapped, avg. cov.). This comes from coverage based mapping and the workflow is no longer included here
 
 ```
 for i in *metaT;do grep "genome" $i/coverage_by_sequence.txt > $i/total_cov.txt; done
@@ -128,7 +103,7 @@ for i in ./*;do echo $i >> totals_mapped_input.txt; cat $i/num_input_reads.txt >
 
 ##### Running locally
 
-#Reformat taxonomic strings. The strain field does not play nice in R, and there are sepcial characters in some species fields
+#Reformat taxonomic strings. The strain field does not play nice in R, and there are special characters in some species fields
 ```
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCount.join > read_counts.phylodist.readCount.join.cleanStrings
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_phylodist.pl read_counts.phylodist.readCountNumGenes.join > read_counts.phylodist.readCountNumGenes.join.cleanStrings
