@@ -19,7 +19,7 @@ sub process_counts{
 }
 
 sub process_anns{
-	my($ann, $categoryInd) = @_;
+	my($ann) = @_;
 	#hash indexed by seq name with category; categories are semi-colon separated string with edge_num (OTU);tax_name;protein origin;taxIDstring (this is in reference to NCBI taxonomy)
 	open(ANN, "$ann") || die "Can't open annotation file\n";
 	my %ann;
@@ -72,7 +72,7 @@ sub print_anns{
 	
 	
 	my $covHashRef = process_counts($coverage);
-	my $annHashRef1 = process_anns($annotations, $categoryInd);
+	my $annHashRef1 = process_anns($annotations);
     my $annCovHashRef = add_cov_to_anns($annHashRef1, $covHashRef);
 	print_anns($annCovHashRef);
 }
