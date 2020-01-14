@@ -132,7 +132,7 @@ Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.r Genus delta
 
 #Filter counts table by genus then summarize by KO and run delta-delta for top ten genera
 ```
-topTenGen=(Curtobacterium Massilia Pseudomonas Alternaria Rhizobium Parastagonospora Frigoribacterium Pyrenophora Bipolaris Sphingomonas)
+topTenGen=(Pseudomonas Rhizobium Alternaria Bipolaris Pyrenophora Curtobacterium Pantoea Massilia Erwinia Ophiobolus)
 for i in ${topTenGen[@]}
 do(
     echo $i
@@ -258,5 +258,9 @@ qsub extract_gff_seqs_metatranscriptome_assemblies.sh
 #### Mapping reads to self assembly. This is for Alex's tax ID mapping. Will use annotation of genomes against tax DB with original mapping
 ```
 qsub ~/diel_RNAseq/map_diel_RNA_to_SELF_asmb_genes_read_counts.sh
-
+```
+#### sum annotations by edge_num;tax;origin;tax_string
+```
+qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metaT_SELF.sh
+```
 

@@ -24,7 +24,7 @@ foreach my $line (@in){
     $tax =~ s/\"//g;
     $tax =~ s/\(//g;
     $tax =~ s/\)//g;
-    #$tax =~ s/\-//g;
+    $tax =~ s/\#//g;
 
     print $tax, "\t", join("\t", @line), "\n";
 }

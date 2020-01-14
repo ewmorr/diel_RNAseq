@@ -82,7 +82,7 @@ filter(readCat == "totalReads" | readCat == "readsMappedCount" | readCat == "phy
 
 plot_read_mapping.df$readCat = factor(as.factor(plot_read_mapping.df$readCat), levels = c("totalReads", "readsMappedCount", "phylodist.annotated", "KO.phylodist.annotated"))
 plot_read_mapping.df = plot_read_mapping.df[order(plot_read_mapping.df$reads), ]
-
+names_for_facets = list("totalReads" = "total reads", "readsMappedCount" = "reads mapped", "phylodist.annotated" = "phylodist", "KO.phylodist.annotated" = "KO & phylodist")
 
 pdf("reads_counts_total_mapped_annotated.pdf", width = 8, height = 6)
 ggplot(plot_read_mapping.df, aes(Sample, reads) ) +
@@ -127,6 +127,7 @@ reads_per_len.phylodist.Genus = reads_per_len.phylodist %>% group_by(Genus) %>% 
 reads_per_len.phylodist.Genus.rowSum = data.frame(Genus = reads_per_len.phylodist.Genus$Genus, sum = reads_per_len.phylodist.Genus[2:108] %>% rowSums)
 reads_per_len.phylodist.Genus.rowSum[order(reads_per_len.phylodist.Genus.rowSum$sum),]
 reads_per_len.phylodist.Genus.rowSum %>% filter(Genus == "Curtobacterium")
+(reads_per_len.phylodist.Genus.rowSum[order(reads_per_len.phylodist.Genus.rowSum$sum, decreasing = T),])[1:10,]
 #Curtobacterium is top in KO.phylodist, Pseudomonas is top in phylodist
 
 
