@@ -23,7 +23,7 @@ grep "CDS" P2_metaG/gene_calls.gff > P2_metaG/gene_calls.CDS.gff
 grep "CDS" P3_metaG/gene_calls.gff > P3_metaG/gene_calls.CDS.gff
 ```
 
-#Extract nucleotides sequences of CDS from contigs
+Extract nucleotides sequences of CDS from contigs
 
 ```
 qsub ~/diel_RNAseq/extract_gff_seqs.sh
@@ -32,7 +32,7 @@ qsub ~/diel_RNAseq/extract_gff_seqs.sh
 
 ```cat P1_metaG/genes.fna P2_metaG/genes.fna P3_metaG/genes.fna > genes_P1P2P3.fna```
 
-#Also cat annotations
+Also cat annotations
 ```
 cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*KO $BIODIR/martiny_diel_metaG/P2_metaG/P2T30_metag/*KO $BIODIR/martiny_diel_metaG/P3_metaG/P3T30_metag/*KO > $BIODIR/martiny_diel_metaG/P1P2P3.KO
 
@@ -42,7 +42,7 @@ cat $BIODIR/martiny_diel_metaG/P1_metaG/P1T30_metag/*EC $BIODIR/martiny_diel_met
 
 ```
 
-#Dereplicate gene calls
+Dereplicate gene calls
 
 ```
 qsub ~/diel_RNAseq/derep_usearch.sh
@@ -50,20 +50,20 @@ qsub ~/diel_RNAseq/derep_usearch.sh
 
 ### mapping for read counts. Reads mapped per target length is input for downstream analyses
 
-#output mapped RNA reads per contig with samtools idxstats
+output mapped RNA reads per contig with samtools idxstats
 
 ```
 qsub ~/diel_RNAseq/map_diel_RNA_to_genes_read_counts.sh
 ```
 
-#Calculate mapped reads by annotations. As above except with read counts per contig not by per base coverage. This will be input to statistical analyses
+Calculate mapped reads by annotations. (I.e., mapped reads per contig are summed by annotation category.) This will be input to statistical analyses
 
 ```
 qsub ~/diel_RNAseq/sum_read_counts_by_annotations.sh
 qsub ~/diel_RNAseq/sum_read_counts_by_single_annotation.sh
 ```
 
-#total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported within three different files (these are the files on Eric's laptop)
+total read count mapped, total length of target reference contigs that were mapped to, and number of genes within an annotation are joined across samples and then reported within three different files (these are the files on Eric's laptop)
 
 ```
 qsub ~/diel_RNAseq/join_ann_tables.sh
@@ -153,13 +153,23 @@ Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category.r
 ```
 Rscript ~/repo/diel_RNAseq/delta_delta_plots_filter_then_summarize_by_category_minDepthLimit.r Phylum Cyanobacteria KO delta-delta_plots.Cyanobacteria-KO.pdf 1000
 
-    "minimum sequence depth: "                       "17"
+    "minimum sequence depth: "                       "35"
     [1] "minimum sequence depth is lower than minimum allowed."
     [1] "Please enter a new rarefaction depth based on the depth per sample below."
 ```
 #also a list of seq depth by sample..
 ```
 100
+```
+
+#### NMDS plots
+
+#First arg is cateogry to summarize counts by, second arg is output file for graphs
+#input files are hardcoded in script and currently loaded from working dir
+
+```
+Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.r KO NMDS_plots.KO.pdf
+Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.r Genus NMDS_plots.Genus.pdf
 ```
 
 
@@ -262,5 +272,32 @@ qsub ~/diel_RNAseq/map_diel_RNA_to_SELF_asmb_genes_read_counts.sh
 #### sum annotations by edge_num;tax;origin;tax_string
 ```
 qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metaT_SELF.sh
+qsub ~/diel_RNAseq/join_ann_tables_20_gene_tax.sh
+```
+##### Running locally
+```
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCount.join > read_counts.20_gene_taxonomy.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCountNumGenes.join > read_counts.20_gene_taxonomy.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCountRefLen.join > read_counts.20_gene_taxonomy.readCountRefLen.join.cleanStrings
+```
+#### read mapping summaries
+#Running this interactively
+```
+read_mapping_stats_20_gene.r
 ```
 
+#### delta-delta plots
+#First arg is cateogry to summarize counts by, second arg is output file for graphs
+#input files are hardcoded in script and currently loaded from working dir
+
+```
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.20_gene.r Tax_name delta-delta_plots.20_gene_tax_name.pdf
+Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.20_gene.r Edge_num delta-delta_plots.20_gene_edge_num.pdf
+```
+
+#### NMDS plots
+
+```
+Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.r KO KO_NMDS
+Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.20_gene.r Edge_num 20_gene_NMDS
+```

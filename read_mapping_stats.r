@@ -1,7 +1,7 @@
 require(tidyverse)
 require(gridExtra)
 require(scales)
-
+require(vegan)
 source("../ggplot_theme.txt")
 
 fancy_scientific <- function(l) {
@@ -108,11 +108,17 @@ ref_len.phylodist = read.table("read_counts.phylodist.readCountRefLen.join.clean
 ref_len.phylodist$P2T31_metaT = NULL
 ref_len.phylodist$X = NULL
 
+minDepth = (colSums(read_count.KO.phylodist[,9:115]) %>% sort)[1]
+read_count.KO.phylodist.rarefied = data.frame(read_count.KO.phylodist[,1:8], t(rrarefy(t(read_count.KO.phylodist[,9:115]), sample = minDepth)) )
+
+minDepth = (colSums(read_count.phylodist[,8:114]) %>% sort)[1]
+read_count.phylodist.rarefied = data.frame(read_count.phylodist[,1:7], t(rrarefy(t(read_count.phylodist[,8:114]), sample = minDepth)) )
+
 #Divide read count by refLen to normalize reads recruited by contig length
-reads_per_len.KO.phylodist = data.frame(read_count.KO.phylodist[,1:8], read_count.KO.phylodist[,9:115]/ref_len.KO.phylodist[,9:115] ) %>% as.tbl
+reads_per_len.KO.phylodist = data.frame(read_count.KO.phylodist.rarefied[,1:8], read_count.KO.phylodist.rarefied[,9:115]/ref_len.KO.phylodist[,9:115] ) %>% as.tbl
 reads_per_len.KO.phylodist[is.na(reads_per_len.KO.phylodist)] = 0
 
-reads_per_len.phylodist = data.frame(read_count.phylodist[,1:7], read_count.phylodist[,8:114]/ref_len.phylodist[,8:114] ) %>% as.tbl
+reads_per_len.phylodist = data.frame(read_count.phylodist.rarefied[,1:7], read_count.phylodist.rarefied[,8:114]/ref_len.phylodist[,8:114] ) %>% as.tbl
 reads_per_len.phylodist[is.na(reads_per_len.phylodist)] = 0
 
 #look at totals by Genus
@@ -132,9 +138,9 @@ reads_per_len.phylodist.Genus.rowSum %>% filter(Genus == "Curtobacterium")
 
 
 #raw read counts by genus (not len normalized)
-read_count.Genus = read_count.KO.phylodist %>% group_by(Genus) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+read_count.Genus = read_count.KO.phylodist.rarefied %>% group_by(Genus) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 read_count.Genus.rowSum = data.frame(Genus = read_count.Genus$Genus, sum = read_count.Genus[2:108] %>% rowSums)
-read_count.Genus.rowSum[order(read_count.Genus.rowSum$sum,]
+read_count.Genus.rowSum[order(read_count.Genus.rowSum$sum),]
 sum(read_count.Genus.rowSum$sum)
 
 read_count.Genus.rowSum %>% filter(Genus == "Curtobacterium")
@@ -144,7 +150,7 @@ ref_len.Genus.rowSum = data.frame(Genus = ref_len.Genus$Genus, sum = ref_len.Gen
 ref_len.Genus.rowSum[order(ref_len.Genus.rowSum$sum),]
 
 
-read_count.phylodist.Genus = read_count.phylodist %>% group_by(Genus) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+read_count.phylodist.Genus = read_count.phylodist.rarefied %>% group_by(Genus) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 read_count.phylodist.Genus.rowSum = data.frame(Genus = read_count.phylodist.Genus$Genus, sum = read_count.phylodist.Genus[2:108] %>% rowSums)
 read_count.phylodist.Genus.rowSum[order(read_count.phylodist.Genus.rowSum$sum),]
 sum(read_count.phylodist.Genus.rowSum$sum)
