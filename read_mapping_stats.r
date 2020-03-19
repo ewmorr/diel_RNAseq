@@ -19,16 +19,68 @@ fancy_scientific <- function(l) {
 
 #total read amounts table
 total_mapped = read.csv("totals_mapped_input.reformat.txt", sep = "\t", header = F)
-colnames(total_mapped) = c("Sample", "totalReads", "readsMappedCov", "totalBases", "targetsLength", "basesMapped", "avgCov")
+colnames(total_mapped) = c("Sample", "total_reads", "readsMappedCov", "totalBases", "targetsLength", "basesMapped", "avgCov")
 total_mapped = total_mapped %>% as.tbl
 total_mapped = total_mapped %>% filter(Sample != "P2T31_metaT")
 
 reads_mapped.count_based = read.table("mapped_reads_read_counts_112119.txt", header = F)
-colnames(reads_mapped.count_based) = c("Sample", "readsMappedCount") #This is second mapping for counts
+colnames(reads_mapped.count_based) = c("Sample", "reads_mapped_metagenomes") #This is second mapping for counts
 total_mapped = left_join(total_mapped, reads_mapped.count_based, by = "Sample")
 
+reads_mapped.count_based.SELF = read.table("mapped_reads_read_counts_SELF_031120.txt", header = F)
+colnames(reads_mapped.count_based.SELF) = c("Sample", "reads_mapped_metatranscriptomes") #This mapping for counts against metaT assemblies
+total_mapped = left_join(total_mapped, reads_mapped.count_based.SELF, by = "Sample")
+
 total_mapped$readsMappedCov/total_mapped$readsMappedCount
-#read mapping peforme the same
+#read mapping repetitions peform the same (i.e., runing the same thing twice is same results)
+
+total_mapped$reads_mapped_metagenomes/total_mapped$reads_mapped_metatranscriptomes
+#metagenome mostly has more reads mapped than metaT
+
+#Plot read mapping against metagenome vs metatranscriptome
+
+p = ggplot(
+    total_mapped %>%
+        pivot_longer(., -Sample, names_to = "step", values_to = "count") %>%
+        filter(step == "total_reads" | step == "reads_mapped_metagenomes" | step == "reads_mapped_metatranscriptomes"),
+        aes(Sample, count)
+    ) +
+    geom_point() +
+    facet_wrap(~step) +
+    my_gg_theme
+
+sum(total_mapped$reads_mapped_metagenomes/total_mapped$total_reads)/length(total_mapped$total_reads)
+
+sum(total_mapped$reads_mapped_metatranscriptomes/total_mapped$total_reads)/length(total_mapped$total_reads)
+
+p1 = ggplot(total_mapped, aes(Sample, reads_mapped_metagenomes/total_reads)) +
+geom_point() +
+my_gg_theme +
+scale_y_continuous(limits = c(0,1)) +
+labs(y = "Proportion reads mapped", x = "Sample", title = "Metagenome mapping -- avg = 0.68") +
+theme(axis.text.x = element_blank())
+
+p2 = ggplot(total_mapped, aes(Sample, reads_mapped_metatranscriptomes/total_reads)) +
+geom_point() +
+my_gg_theme +
+scale_y_continuous(limits = c(0,1)) +
+labs(y = "Proportion reads mapped", x = "Sample", title = "Metatranscriptome mapping -- avg = 0.56") +
+theme(axis.text.x = element_blank())
+
+pdf("mapping_metaG_v_metaT.pdf", width = 16, height = 4)
+grid.arrange(p1,p2,ncol = 2)
+dev.off()
+
+outlier_samples = c(0,1,2,3,4,5,6)
+
+p1 = ggplot(mapped.metadata %>% filter(!TimePoint %in% outlier_samples), aes(Sample, reads_mapped_metagenomes/total_reads)) +
+geom_point() +
+my_gg_theme +
+scale_y_continuous(limits = c(0,1)) +
+labs(y = "Proportion reads mapped", x = "Sample", title = "Metagenome mapping -- avg = 0.68") +
+theme(axis.text.x = element_blank())
+
+
 
 #metadata table
 metadata = read.table("metadata.txt", header = T, sep = "\t")

@@ -2,8 +2,9 @@ require(tidyverse)
 require(gridExtra)
 require(scales)
 require(vegan)
+require(lubridate)
 
-source("../ggplot_theme.txt")
+source("~/ggplot_theme.txt")
 
 fancy_scientific <- function(l) {
 	# turn in to character string in scientific notation
@@ -28,6 +29,8 @@ total_mapped = total_mapped %>% filter(Sample != "P2T31_metaT")
 metadata = read.table("metadata.txt", header = T, sep = "\t")
 metadata = metadata %>% as.tbl
 metadata = metadata %>% filter(Sample != "P2T31_metaT")
+
+metadata$timeOfDay.RNA = (as.numeric(as.POSIXlt(metadata$timeOfDay.RNA, format = "%H:%M") %>% hour) + as.numeric((as.POSIXlt(metadata$timeOfDay.RNA, format = "%H:%M") %>% minute)/60) ) %>% signif(2)
 
 mapped.metadata = full_join(total_mapped, metadata, by = "Sample")
 
@@ -77,29 +80,85 @@ num_genes.20_gene_taxonomy$X = NULL
 minDepth = (colSums(read_count.20_gene_taxonomy[,5:111]) %>% sort)[1]
 read_count.rarefied = data.frame(read_count.20_gene_taxonomy[,1:4], t(rrarefy(t(read_count.20_gene_taxonomy[,5:111]), sample = minDepth)) )
 
+saveRDS(read_count.rarefied, file = "20_gene_rarefied_counts.rds")
+
+
 #Divide read count by refLen to normalize reads recruited by contig length
 reads_per_len.20_gene_taxonomy = data.frame(read_count.rarefied[,1:4], read_count.rarefied[,5:111]/ref_len.20_gene_taxonomy[,5:111] ) %>% as.tbl
 reads_per_len.20_gene_taxonomy[is.na(reads_per_len.20_gene_taxonomy)] = 0
 
 #look at totals by Tax_name
 reads_per_len.Tax_name = reads_per_len.20_gene_taxonomy %>% group_by(Tax_name) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-reads_per_len.Tax_name.rowSum = data.frame(Tax_name = reads_per_len.Tax_name$Tax_name, sum = reads_per_len.Tax_name[2:108] %>% rowSums)
+reads_per_len.Tax_name.rowSum = data.frame(Tax_name = reads_per_len.Tax_name$Tax_name, sum = reads_per_len.Tax_name[3:108] %>% rowSums)
 reads_per_len.Tax_name.rowSum[order(reads_per_len.Tax_name.rowSum$sum),]
 reads_per_len.Tax_name.rowSum %>% filter(Tax_name == "Curtobacterium")
 
-(reads_per_len.Tax_name.rowSum[order(reads_per_len.Tax_name.rowSum$sum, decreasing = T),])[1:10,]
+top_ten_genera = (reads_per_len.Tax_name.rowSum[order(reads_per_len.Tax_name.rowSum$sum, decreasing = T),])[1:10,]
 
+#Relative abundance
+reads_per_len.Tax_name.relAbd = data.frame(
+    reads_per_len.Tax_name[,1:2],
+    reads_per_len.Tax_name[,3:length(reads_per_len.Tax_name)]/colSums(reads_per_len.Tax_name[,3:length(reads_per_len.Tax_name)])
+)
+
+saveRDS(reads_per_len.Tax_name.relAbd, "20_gene_relative_abd.rds")
+write.table(reads_per_len.Tax_name.relAbd, file = "20_gene_rel_abd.txt", sep = "\t", row.names = F, quote = F)
+
+reads_per_len.Tax_name.relAbd.long = pivot_longer(reads_per_len.Tax_name.relAbd,
+    cols = c(-Tax_name, -Edge_num),
+    names_to = "Sample",
+    values_to = "rel_abd"
+)
+
+reads_per_len.Tax_name.relAbd.long.metadata = left_join(reads_per_len.Tax_name.relAbd.long, mapped.metadata, by = "Sample")
+require(RColorBrewer)
+reads_per_len.Tax_name.relAbd.long.metadata.topTen = reads_per_len.Tax_name.relAbd.long.metadata %>% filter(Tax_name %in% top_ten_genera$Tax_name)
+
+reads_per_len.Tax_name.relAbd.long.metadata.topTen$Tax_name = factor(reads_per_len.Tax_name.relAbd.long.metadata.topTen$Tax_name, levels = top_ten_genera$Tax_name)
+
+p1 = ggplot(reads_per_len.Tax_name.relAbd.long.metadata.topTen, aes(TimePoint, rel_abd, fill = Tax_name)) +
+geom_col() +
+facet_wrap(~Plot) +
+scale_fill_brewer(palette = "Paired") +
+labs(x = "Time point", y = "Rel. abd.") +
+my_gg_theme
+
+pdf("20_gene_rel_abd_top_ten.pdf", width = 14, height = 6)
+p1
+dev.off()
+
+
+p1 = ggplot(reads_per_len.Tax_name.relAbd.long.metadata.topTen, aes(TimePoint, rel_abd)) +
+geom_point() +
+#geom_smooth() +
+facet_grid(Tax_name~Plot, scale = "free_y") +
+scale_fill_brewer(palette = "Paired") +
+labs(x = "Time point", y = "Rel. abd.") +
+my_gg_theme
+
+p2 = ggplot(reads_per_len.Tax_name.relAbd.long.metadata.topTen, aes(timeOfDay.RNA, rel_abd)) +
+geom_point() +
+geom_smooth() +
+facet_grid(Tax_name~Plot, scale = "free_y") +
+scale_fill_brewer(palette = "Paired") +
+labs(x = "Time of Day", y = "Rel. abd.") +
+my_gg_theme
+
+pdf("20_gene_rel_abd_top_ten_scatterPlots.pdf", width = 16, height = 20)
+print(p1)
+print(p2)
+dev.off()
 
 #raw read counts by Tax_name (not len normalized)
 read_count.Tax_name = read_count.rarefied %>% group_by(Tax_name) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-read_count.Tax_name.rowSum = data.frame(Tax_name = read_count.Tax_name$Tax_name, sum = read_count.Tax_name[2:108] %>% rowSums)
+read_count.Tax_name.rowSum = data.frame(Tax_name = read_count.Tax_name$Tax_name, sum = read_count.Tax_name[3:108] %>% rowSums)
 read_count.Tax_name.rowSum[order(read_count.Tax_name.rowSum$sum),]
 sum(read_count.Tax_name.rowSum$sum)
 
 read_count.Tax_name.rowSum %>% filter(Tax_name == "Curtobacterium")
 
 ref_len.Tax_name = ref_len.20_gene_taxonomy %>% group_by(Tax_name) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-ref_len.Tax_name.rowSum = data.frame(Tax_name = ref_len.Tax_name$Tax_name, sum = ref_len.Tax_name[2:108] %>% rowSums)
+ref_len.Tax_name.rowSum = data.frame(Tax_name = ref_len.Tax_name$Tax_name, sum = ref_len.Tax_name[3:108] %>% rowSums)
 ref_len.Tax_name.rowSum[order(ref_len.Tax_name.rowSum$sum),]
 
 

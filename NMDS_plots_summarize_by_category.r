@@ -96,6 +96,7 @@ while(reads_per_len.nmds$converged != TRUE){
     ),
     distance = "bray", k = 3, previous.best = reads_per_len.nmds)
 }
+saveRDS(reads_per_len.nmds, file = "intermediate_RDS/KO_nmds_full.rds")
 
 reads_per_len.nmds.metadata = left_join(
     data.frame(Sample = rownames(reads_per_len.nmds$points), MDS1 = reads_per_len.nmds$points[,1], MDS2 = reads_per_len.nmds$points[,2]),
@@ -215,6 +216,9 @@ while(reads_per_len.wide.P3.nmds$converged != TRUE){
     distance = "bray", k = 2, previous.best = reads_per_len.wide.P3.nmds)
 }
 
+saveRDS(reads_per_len.wide.P1.nmds, file = "intermediate_RDS/KO_nmds.P1.rds")
+saveRDS(reads_per_len.wide.P2.nmds, file = "intermediate_RDS/KO_nmds.P2.rds")
+saveRDS(reads_per_len.wide.P3.nmds, file = "intermediate_RDS/KO_nmds.P3.rds")
 #Add metadata for plotting
 
 reads_per_len.nmds.P1.metadata = left_join(

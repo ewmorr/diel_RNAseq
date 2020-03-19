@@ -78,9 +78,13 @@ qsub ~/diel_RNAseq/join_ann_tables.sh
 ```
 for i in *metaT;do grep "Output" $i/*report.txt | cut -f 2 -d "|" | sed 's/ //g' | sed 's/,//g' > $i/num_input_reads.txt; done
 ```
-#number of mapped reads can be summed from the files `read_per_contig.txt`
+#number of mapped reads for metagenome mapping can be summed from the files `read_per_contig.txt`
 ```
 perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ reads_per_contig.txt > mapped_reads_read_counts_112119.txt
+```
+#number of mapped reads for metatranscriptome self-mapping can be summed from the files `read_per_contig_SELF.txt`
+```
+perl ~/bin/sum_mapped_read_by_sample.pl /dfs3/bio/morrise1/martiny_diel_seqs/ reads_per_contig_SELF.txt > mapped_reads_read_counts_SELF_031120.txt
 ```
 #Number of input bases
 
@@ -271,6 +275,7 @@ qsub ~/diel_RNAseq/map_diel_RNA_to_SELF_asmb_genes_read_counts.sh
 ```
 #### sum annotations by edge_num;tax;origin;tax_string
 ```
+qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metagenome_mapping.sh
 qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metaT_SELF.sh
 qsub ~/diel_RNAseq/join_ann_tables_20_gene_tax.sh
 ```

@@ -8,5 +8,5 @@
 
 cd $HOME
 
-perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.20_gene_taxonomy
+perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.20_gene_taxonomy.metaG
 
