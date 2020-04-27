@@ -274,16 +274,28 @@ qsub extract_gff_seqs_metatranscriptome_assemblies.sh
 qsub ~/diel_RNAseq/map_diel_RNA_to_SELF_asmb_genes_read_counts.sh
 ```
 #### sum annotations by edge_num;tax;origin;tax_string
+#### running short read mapping against metagenome assemblies in addition to metaT self
 ```
 qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metagenome_mapping.sh
 qsub ~/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation_metaT_SELF.sh
 qsub ~/diel_RNAseq/join_ann_tables_20_gene_tax.sh
 ```
+#### sum annotations by GH
+```
+qsub ~/diel_RNAseq/sum_read_counts_by_GH_annotation_metagenome_mapping.sh
+qsub ~/diel_RNAseq/join_ann_tables_GH.sh
+```
+
 ##### Running locally
 ```
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCount.join > read_counts.20_gene_taxonomy.readCount.join.cleanStrings
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCountNumGenes.join > read_counts.20_gene_taxonomy.readCountNumGenes.join.cleanStrings
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCountRefLen.join > read_counts.20_gene_taxonomy.readCountRefLen.join.cleanStrings
+
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.metaG.readCount.join > read_counts.20_gene_taxonomy.metaG.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.metaG.readCountNumGenes.join > read_counts.20_gene_taxonomy.metaG.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.metaG.readCountRefLen.join > read_counts.20_gene_taxonomy.metaG.readCountRefLen.join.cleanStrings
+
 ```
 #### read mapping summaries
 #Running this interactively

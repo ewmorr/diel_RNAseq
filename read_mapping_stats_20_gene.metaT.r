@@ -37,7 +37,7 @@ mapped.metadata = full_join(total_mapped, metadata, by = "Sample")
 #RNA seq data, read_counts is the number of reads mapped per category (e.g. taxonomic string)
 
 #import
-read_count.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.metaG.readCount.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
+read_count.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.readCount.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
 read_count.20_gene_taxonomy$P2T31_metaT = NULL
 read_count.20_gene_taxonomy$X = NULL
 colSums(read_count.20_gene_taxonomy[,5:111]) %>% sort
@@ -56,7 +56,7 @@ plot_read_mapping.df$readCat = factor(as.factor(plot_read_mapping.df$readCat), l
 plot_read_mapping.df = plot_read_mapping.df[order(plot_read_mapping.df$reads), ]
 names_for_facets = list("totalReads" = "total reads", "twenty_gene_taxonomy.annotated" = "20 gene taxonomy")
 
-pdf("reads_counts_total_mapped_annotated_20_gene.metaG.pdf", width = 8, height = 6)
+pdf("reads_counts_total_mapped_annotated_20_gene.pdf", width = 8, height = 6)
 ggplot(plot_read_mapping.df, aes(Sample, reads) ) +
 geom_point() +
 facet_wrap(~readCat, labeller = labeller(readCat = names_for_facets)) +
@@ -67,11 +67,11 @@ theme(axis.text.x = element_blank())
 dev.off()
 
 #RNA seq data, ref_len is the total length of reference contigs per category
-ref_len.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.metaG.readCountRefLen.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
+ref_len.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.readCountRefLen.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
 ref_len.20_gene_taxonomy$P2T31_metaT = NULL
 ref_len.20_gene_taxonomy$X = NULL
 
-num_genes.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.metaG.readCountNumGenes.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
+num_genes.20_gene_taxonomy = read.table("read_counts.20_gene_taxonomy.readCountNumGenes.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
 num_genes.20_gene_taxonomy$P2T31_metaT = NULL
 num_genes.20_gene_taxonomy$X = NULL
 
@@ -80,7 +80,7 @@ num_genes.20_gene_taxonomy$X = NULL
 minDepth = (colSums(read_count.20_gene_taxonomy[,5:111]) %>% sort)[1]
 read_count.rarefied = data.frame(read_count.20_gene_taxonomy[,1:4], t(rrarefy(t(read_count.20_gene_taxonomy[,5:111]), sample = minDepth)) )
 
-saveRDS(read_count.rarefied, file = "20_gene_rarefied_counts.metaG.rds")
+saveRDS(read_count.rarefied, file = "20_gene_rarefied_counts.rds")
 
 
 #Divide read count by refLen to normalize reads recruited by contig length
@@ -101,8 +101,8 @@ reads_per_len.Tax_name.relAbd = data.frame(
     t(t(reads_per_len.Tax_name[,3:length(reads_per_len.Tax_name)])/colSums(reads_per_len.Tax_name[,3:length(reads_per_len.Tax_name)]))
 )
 
-saveRDS(reads_per_len.Tax_name.relAbd, "20_gene_relative_abd.metaG.rds")
-write.table(reads_per_len.Tax_name.relAbd, file = "20_gene_rel_abd.metaG.txt", sep = "\t", row.names = F, quote = F)
+saveRDS(reads_per_len.Tax_name.relAbd, "20_gene_relative_abd.rds")
+write.table(reads_per_len.Tax_name.relAbd, file = "20_gene_rel_abd.txt", sep = "\t", row.names = F, quote = F)
 
 reads_per_len.Tax_name.relAbd.long = pivot_longer(reads_per_len.Tax_name.relAbd,
     cols = c(-Tax_name, -Edge_num),
@@ -123,7 +123,7 @@ scale_fill_brewer(palette = "Paired") +
 labs(x = "Time point", y = "Rel. abd.") +
 my_gg_theme
 
-pdf("20_gene_rel_abd_top_ten.metaG.pdf", width = 14, height = 6)
+pdf("20_gene_rel_abd_top_ten.pdf", width = 14, height = 6)
 p1
 dev.off()
 
@@ -136,21 +136,16 @@ scale_fill_brewer(palette = "Paired") +
 labs(x = "Time point", y = "Rel. abd.") +
 my_gg_theme
 
-p2 = ggplot(reads_per_len.Tax_name.relAbd.long.metadata.topTen %>% filter(TimePoint > 5), aes(timeOfDay.RNA, rel_abd)) +
+p2 = ggplot(reads_per_len.Tax_name.relAbd.long.metadata.topTen, aes(timeOfDay.RNA, rel_abd)) +
 geom_point() +
 geom_smooth() +
-facet_grid(Plot~Tax_name) +
+facet_grid(Tax_name~Plot, scale = "free_y") +
 scale_fill_brewer(palette = "Paired") +
 labs(x = "Time of Day", y = "Rel. abd.") +
 my_gg_theme
 
-pdf("20_gene_rel_abd_top_ten_scatterPlots.metaG.pdf", width = 16, height = 20)
+pdf("20_gene_rel_abd_top_ten_scatterPlots.pdf", width = 16, height = 20)
 print(p1)
-print(p2)
-dev.off()
-
-pdf("20_gene_rel_abd_top_ten_TOD_scatterPlots.metaG.pdf", width = 28, height = 10)
-#print(p1)
 print(p2)
 dev.off()
 
@@ -204,7 +199,7 @@ my_gg_theme +
 theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-pdf("top_ten_genera.20_gene_tax.metaG.pdf", width = 12, height = 10)
+pdf("top_ten_genera.20_gene_tax.pdf", width = 12, height = 10)
 grid.arrange(p1,p2,nrow = 2)
 dev.off()
 

@@ -25,7 +25,7 @@ fancy_scientific <- function(l) {
 args = commandArgs(T)
 catToSum = args[1]
 outputFile = args[2]
-catToSum = "KO"
+catToSum = "Edge_num"
 #total read amounts table
 total_mapped = read.csv("totals_mapped_input.reformat.txt", sep = "\t", header = F)
 colnames(total_mapped) = c("Sample", "totalReads", "readsMappedCov", "totalBases", "targetsLength", "basesMapped", "avgCov")
@@ -49,11 +49,13 @@ mapped.metadata = full_join(total_mapped, metadata, by = "Sample")
 
 
 #RNA seq data, ref_len is the total length of reference contigs per category
-ref_len = read.table("read_counts.KO.phylodist.readCountRefLen.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
+ref_len = read.table("read_counts.20_gene_taxonomy.metaG.readCountRefLen.join.cleanStrings", header = T, sep = "\t") %>% as.tbl
 ref_len$P2T31_metaT = NULL
 ref_len$X = NULL
+ref_len$Edge_num = as.factor(ref_len$Edge_num)
 
-read_count.rarefied = readRDS(file = "intermediate_RDS/KO_rarefied_count.rds")
+read_count.rarefied = readRDS(file = "intermediate_RDS/20_gene_rarefied_counts.metaG.rds")
+read_count.rarefied$Edge_num = as.factor(read_count.rarefied$Edge_num)
 
 #To have dplyr interpret args correctly need to !! and parse_expr() (bc of NSE)
 read_count.rarefied.sumCat = read_count.rarefied %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
@@ -152,12 +154,12 @@ for(i in 1:length(colnames(harmonics_phase_shift))){
     temp.var = anova(reads_per_len.DBRDA.harmonics)
     phase_mod_res$phase[i] = i
     phase_mod_res$p.val[i] = temp.var$`Pr(>F)`[1]
-    phase_mod_res$sumSq[i] = temp.var$SumOfSqs[1]
+    phase_mod_res$sumSq[i] = temp.var$SumOfSqs[1]/(temp.var$SumOfSqs[1]+temp.var$SumOfSqs[2])
 }
 
 
 
-potential_explanatory_scope = data.frame(plot = mapped.metadata.no_outliers$Plot, moisture = scale(mapped.metadata.no_outliers$Moisture), temperature = scale(mapped.metadata.no_outliers$Temperature), time = (mapped.metadata.no_outliers$hours.cumulative.RNA), harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)], timeOfDay = mapped.metadata.no_outliers$timeOfDay.RNA
+potential_explanatory_scope = data.frame(plot = mapped.metadata.no_outliers$Plot, moisture = scale(mapped.metadata.no_outliers$Moisture), temperature = scale(mapped.metadata.no_outliers$Temperature), time = (mapped.metadata.no_outliers$hours.cumulative.RNA), harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)]#, timeOfDay = mapped.metadata.no_outliers$timeOfDay.RNA
 )
 #plot(potential_explanatory_scope$diel_sin+potential_explanatory_scope$diel_cos ~ potential_explanatory_scope$timeOfDay)
 p1 = ggplot(potential_explanatory_scope, aes(y = harmonic, x = timeOfDay)) +
@@ -170,13 +172,13 @@ geom_point() +
 labs(x = "hours from experiment start") +
 my_gg_theme
 
-pdf("harmonics_overOtime.pdf", width = 8, height = 6)
+pdf("harmonics_overOtime_20_gene.pdf", width = 8, height = 6)
 grid.arrange(p1,p2,ncol=1)
 dev.off()
 #plot(potential_explanatory_scope$diel_sin ~ potential_explanatory_scope$temperature)
 #plot(potential_explanatory_scope$diel_cos ~ potential_explanatory_scope$temperature)
 
-#After ordistep try adding harmonics
+#run ordistep
 
 reads_per_len.DBRDA = capscale(
 sqrt(reads_per_len.for_ord) ~ 1,
@@ -199,12 +201,12 @@ reads_per_len.DBRDA.ordistep.highStepHighPerm$anova
 reads_per_len.DBRDA.ordistep.highStepHighPerm.terms = anova(reads_per_len.DBRDA.ordistep.highStepHighPerm, by = "terms")
 
 tot_sum_sq = sum(reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs)
-expln_sum_sq = sum(reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1:4])
+expln_sum_sq = sum(reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1:3])
 expln_sum_sq/tot_sum_sq
 var1_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1]/tot_sum_sq
 var2_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[2]/tot_sum_sq
 var3_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[3]/tot_sum_sq
-var4_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[4]/tot_sum_sq
+#var4_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[4]/tot_sum_sq
 
 
 
@@ -213,18 +215,19 @@ plot(reads_per_len.DBRDA.ordistep.highStepHighPerm)
 potential_explanatory_scope = data.frame(plot = mapped.metadata.no_outliers$Plot, moisture = scale(mapped.metadata.no_outliers$Moisture), temperature = scale(mapped.metadata.no_outliers$Temperature), time = scale(mapped.metadata.no_outliers$hours.cumulative.RNA), harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)], timeOfDay = mapped.metadata.no_outliers$timeOfDay.RNA, timepoint = mapped.metadata.no_outliers$TimePoint
 )
 
-plot.df = data.frame(scores(reads_per_len.DBRDA.ordistep.highStepHighPerm)$sites, potential_explanatory_scope)
-plot.df.biplot = data.frame(label = rownames(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,]), reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,])
+#plot.df = data.frame(scores(reads_per_len.DBRDA.ordistep.highStepHighPerm)$sites, potential_explanatory_scope)
+plot.df = data.frame(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$u, potential_explanatory_scope)
+plot.df.biplot = data.frame(label = rownames(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:4,]), reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:4,])
 
-pdf("dbRDA_best_fit_KO.scaled_varaince.pdf", width = 10, height = 8)
+pdf("dbRDA_best_fit_20_gene.pdf", width = 10, height = 8)
 ggplot() +
 geom_point(data = plot.df, aes(CAP1, CAP2, shape = plot, color = harmonic), size = 3) +
-geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1*2, yend = CAP2*2), color = "black", arrow = arrow(length = unit(0.015, "npc"))) +
+geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1/2.3, yend = CAP2/2.3), color = "black", arrow = arrow(length = unit(0.015, "npc"))) +
 #scale_color_gradient(low = "#0571b0", high = "#ca0020") +
-geom_text(data = plot.df.biplot, aes(CAP1*2.15, CAP2*2.15, label = label), size = 5) +
-labs(x = "dbRDA axis 1 (19.2% tot. variance)",
-y = "dbRDA axis 2 (2.4% tot. variance)",
-title = "Best fit dbRDA terms: plot, time, moisture, time harmonic\nConstrained variance = 0.26, P = 0.001",
+geom_text(data = plot.df.biplot, aes(CAP1/2, CAP2/2, label = label), size = 5) +
+labs(x = "dbRDA axis 1 (9.5% tot. variance)",
+y = "dbRDA axis 2 (1.5% tot. variance)",
+title = "Best fit dbRDA terms: plot, time, moisture\nConstrained variance = 0.14, P = 0.001",
 shape = "Plot",
 color = "Harmonic"
 ) +
@@ -236,18 +239,15 @@ plot.title = element_text(size = 18, hjust = 0)
 dev.off()
 
 ################
-#Also ran this with T0-T5 included variance explained was .25 (insterad of .26) and time came out as strongest predictor, though the same four predictors were included.
+#TEMP ONLY
 
-#####################
-#temperature alone
-
-
-reads_per_len.DBRDA.only_temp = capscale(
+reads_per_len.DBRDA.temp_only = capscale(
 sqrt(reads_per_len.for_ord) ~ temperature,
 distance = "bray",
 metaMDSdist = T,
 data = potential_explanatory_scope
 )
+
 
 
 ######################################################

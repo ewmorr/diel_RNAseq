@@ -324,7 +324,7 @@ geom_point() +
 my_gg_theme +
 labs(y = expression(paste("cells g"^-1," litter")) ,
 title = paste("R2 = ", signif(summary(fit)$r.squared, 2),
-" P = 0 .042")
+" P = 0 .47")
 )
 dev.off()
 
