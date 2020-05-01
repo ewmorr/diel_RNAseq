@@ -213,20 +213,22 @@ plot(reads_per_len.DBRDA.ordistep.highStepHighPerm)
 potential_explanatory_scope = data.frame(plot = mapped.metadata.no_outliers$Plot, moisture = scale(mapped.metadata.no_outliers$Moisture), temperature = scale(mapped.metadata.no_outliers$Temperature), time = scale(mapped.metadata.no_outliers$hours.cumulative.RNA), harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)], timeOfDay = mapped.metadata.no_outliers$timeOfDay.RNA, timepoint = mapped.metadata.no_outliers$TimePoint
 )
 
-plot.df = data.frame(scores(reads_per_len.DBRDA.ordistep.highStepHighPerm)$sites, potential_explanatory_scope)
+plot.df = data.frame(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$u[,1:2], potential_explanatory_scope)
 plot.df.biplot = data.frame(label = rownames(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,]), reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,])
 
-pdf("dbRDA_best_fit_KO.scaled_varaince.pdf", width = 10, height = 8)
+pdf("dbRDA_best_fit_KO.pdf", width = 8, height = 6)
 ggplot() +
-geom_point(data = plot.df, aes(CAP1, CAP2, shape = plot, color = harmonic), size = 3) +
-geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1*2, yend = CAP2*2), color = "black", arrow = arrow(length = unit(0.015, "npc"))) +
+geom_point(data = plot.df, aes(CAP1, CAP2, shape = plot, fill = timeOfDay), size = 3.5) +
+geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1/2.2, yend = CAP2/2.2), color = "black", arrow = arrow(length = unit(0.015, "npc"))) +
 #scale_color_gradient(low = "#0571b0", high = "#ca0020") +
-geom_text(data = plot.df.biplot, aes(CAP1*2.15, CAP2*2.15, label = label), size = 5) +
+scale_shape_manual(values = c("P1" = 21,"P2" = 22, "P3" = 23)) +
+geom_text(data = plot.df.biplot, aes(CAP1/2, CAP2/2, label = label), size = 5) +
+scale_fill_gradient2(low = "black", high = "black", mid = "white", midpoint = 12, breaks = c(0,12,24), limits = c(0,24)) +
 labs(x = "dbRDA axis 1 (19.2% tot. variance)",
 y = "dbRDA axis 2 (2.4% tot. variance)",
 title = "Best fit dbRDA terms: plot, time, moisture, time harmonic\nConstrained variance = 0.26, P = 0.001",
 shape = "Plot",
-color = "Harmonic"
+fill = "Time of day"
 ) +
 my_gg_theme +
 theme(
@@ -234,6 +236,7 @@ legend.title = element_text(size = 20, hjust = 0),
 plot.title = element_text(size = 18, hjust = 0)
 )
 dev.off()
+
 
 ################
 #Also ran this with T0-T5 included variance explained was .25 (insterad of .26) and time came out as strongest predictor, though the same four predictors were included.
@@ -285,151 +288,5 @@ reads_per_len.DBRDA.ordiR2step = ordiR2step(reads_per_len.DBRDA, scope = formula
 anova(reads_per_len.DBRDA.ordistep)
 
 reads_per_len.DBRDA.ordistep = ordistep(reads_per_len.DBRDA, scope = formula(reads_per_len.DBRDA.all), direction = "forward")
-
-
-
-
-#transform DF
-
-reads_per_len.long.meta =
-#long form to add metadata
-reads_per_len %>% gather(key = Sample, value = count, -sumCat) %>%
-#metadata to filter
-left_join(., mapped.metadata, by = "Sample")
-
-#filter by plots and spread for distance calculation
-
-reads_per_len.wide.P1 = reads_per_len.long.meta %>%
-filter(Plot == "P1") %>%
-select(c("sumCat", "Sample", "count")) %>%
-spread(., Sample, count)
-
-reads_per_len.wide.P2 = reads_per_len.long.meta %>%
-filter(Plot == "P2") %>%
-select(c("sumCat", "Sample", "count")) %>%
-spread(., Sample, count)
-
-reads_per_len.wide.P3 = reads_per_len.long.meta %>%
-filter(Plot == "P3") %>%
-select(c("sumCat", "Sample", "count")) %>%
-spread(., Sample, count)
-
-#NMDS by plot
-
-mapped.metadata.P1 = filter(mapped.metadata, Plot == "P1"
-)
-mapped.metadata.P1 = mapped.metadata.P1[match(colnames(reads_per_len.wide.P1[2:37]), mapped.metadata.P1$Sample),]
-
-reads_per_len.wide.P1.DBRDA = capscale(sqrt(
-    t(reads_per_len.wide.P1[
-    #The indexing term filters outs that only appear in one sample
-    rowSums(reads_per_len[,2:length(colnames(reads_per_len.wide.P1))] > 0) >= 2,
-    2:length(colnames(reads_per_len.wide.P1))
-    ])
-) ~ sin(2*pi*mapped.metadata.P1$hours.cumulative.RNA/24) + cos(2*pi*mapped.metadata.P1$hours.cumulative.RNA/24) ,
-distance = "bray",
-metaMDSdist = T,
-)
-
-anova(reads_per_len.wide.P1.DBRDA)
-anova(reads_per_len.wide.P1.DBRDA, by = "terms")
-reads_per_len.wide.P1.DBRDA
-
-mapped.metadata.P2 = filter(mapped.metadata, Plot == "P2"
-)
-mapped.metadata.P2 = mapped.metadata.P2[match(colnames(reads_per_len.wide.P2[2:36]), mapped.metadata.P2$Sample),]
-
-reads_per_len.wide.P2.DBRDA = capscale(sqrt(
-t(reads_per_len.wide.P2[
-#The indexing term filters outs that only appear in one sample
-rowSums(reads_per_len[,2:length(colnames(reads_per_len.wide.P2))] > 0) >= 2,
-2:length(colnames(reads_per_len.wide.P2))
-])
-) ~ sin(2*pi*mapped.metadata.P2$hours.cumulative.RNA/24) + cos(2*pi*mapped.metadata.P2$hours.cumulative.RNA/24) + mapped.metadata.P2$Moisture + mapped.metadata.P2$Temperature,
-distance = "bray",
-metaMDSdist = T,
-)
-
-anova(reads_per_len.wide.P2.DBRDA)
-anova(reads_per_len.wide.P2.DBRDA, by = "terms")
-reads_per_len.wide.P2.DBRDA
-
-mapped.metadata.P3 = filter(mapped.metadata, Plot == "P3"
-)
-mapped.metadata.P3 = mapped.metadata.P3[match(colnames(reads_per_len.wide.P3[2:37]), mapped.metadata.P3$Sample),]
-
-reads_per_len.wide.P3.DBRDA = capscale(sqrt(
-t(reads_per_len.wide.P3[
-#The indexing term filters outs that only appear in one sample
-rowSums(reads_per_len[,2:length(colnames(reads_per_len.wide.P3))] > 0) >= 2,
-2:length(colnames(reads_per_len.wide.P3))
-])
-) ~ sin(2*pi*mapped.metadata.P3$hours.cumulative.RNA/24) + cos(2*pi*mapped.metadata.P3$hours.cumulative.RNA/24),
-distance = "bray",
-metaMDSdist = T,
-)
-
-anova(reads_per_len.wide.P3.DBRDA)
-anova(reads_per_len.wide.P3.DBRDA, by = "terms")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Add metadata for plotting
-
-reads_per_len.nmds.P1.metadata = left_join(
-data.frame(Sample = rownames(reads_per_len.wide.P1.nmds$points), MDS1 = reads_per_len.wide.P1.nmds$points[,1], MDS2 = reads_per_len.wide.P1.nmds$points[,2]),
-mapped.metadata
-)
-
-reads_per_len.nmds.P2.metadata = left_join(
-data.frame(Sample = rownames(reads_per_len.wide.P2.nmds$points), MDS1 = reads_per_len.wide.P2.nmds$points[,1], MDS2 = reads_per_len.wide.P2.nmds$points[,2]),
-mapped.metadata
-)
-
-reads_per_len.nmds.P3.metadata = left_join(
-data.frame(Sample = rownames(reads_per_len.wide.P3.nmds$points), MDS1 = reads_per_len.wide.P3.nmds$points[,1], MDS2 = reads_per_len.wide.P3.nmds$points[,2]),
-mapped.metadata
-)
-
-reads_per_len.nmds.P1.P2.P3.metadata = rbind(reads_per_len.nmds.P1.metadata, reads_per_len.nmds.P2.metadata, reads_per_len.nmds.P3.metadata)
-
-p1 = ggplot(reads_per_len.nmds.P1.P2.P3.metadata, aes(MDS1, MDS2, color = hours.cumulative.RNA)) +
-geom_point(size = 2) +
-facet_wrap(~Plot, ncol = 3, scales = "free") +
-my_gg_theme +
-labs(color = "Time (hrs)") +
-scale_color_gradient(low = "#0571b0", high = "#ca0020") +
-theme(legend.title = element_text(size = 22))
-
-p2 = ggplot(filter(reads_per_len.nmds.P1.P2.P3.metadata, Moisture >= 0), aes(MDS1, MDS2, color = Moisture)) +
-geom_point(size = 2) +
-facet_wrap(~Plot, ncol = 3, scales = "free") +
-my_gg_theme +
-scale_color_gradient(low = "#0571b0", high = "#ca0020", trans = "sqrt") +
-labs(color = "Moisture") +
-theme(legend.title = element_text(size = 22))
-
-p3 = ggplot(reads_per_len.nmds.P1.P2.P3.metadata, aes(MDS1, MDS2, color = Temperature)) +
-geom_point(size = 2) +
-facet_wrap(~Plot, ncol = 3, scales = "free") +
-my_gg_theme +
-labs(color = "Temperature") +
-scale_color_gradient(low = "#0571b0", high = "#ca0020") +
-theme(legend.title = element_text(size = 22))
-
-pdf("KO_NMDS_by_plot.pdf", width = 12, height = 8)
-grid.arrange(p1,p2,p3, ncol = 1)
-dev.off()
 
 
