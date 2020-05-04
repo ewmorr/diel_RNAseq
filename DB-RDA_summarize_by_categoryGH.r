@@ -222,7 +222,7 @@ geom_text(data = plot.df.biplot, aes(CAP1/2.75, CAP2/2.75, label = label), size 
 scale_fill_gradient2(low = "black", high = "black", mid = "white", midpoint = 12, breaks = c(0,12,24), limits = c(0,24)) +
 labs(x = "dbRDA axis 1 (11.8% tot. variance)",
 y = "dbRDA axis 2 (2.0% tot. variance)",
-title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.14, P = 0.001",
+title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.15, P = 0.001",
 shape = "Plot",
 fill = "Time of day"
 ) +

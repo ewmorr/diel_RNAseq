@@ -29,10 +29,20 @@ ref_len$X = NULL
 
 read_count.rarefied = readRDS(file = "intermediate_RDS/KO_rarefied_count.rds")
 
+fungal_phyla = c("Ascomycota", "Basidiomycota", "Chytridiomycota", "Mucoromycota", "Blastocladiomycota", "Zoopagomycota")
+
+read_count.rarefied.fungi = read_count.rarefied %>% filter(Phylum %in% fungal_phyla)
+
+
+
 #To have dplyr interpret args correctly need to !! and parse_expr() (bc of NSE)
 catToSum = "KO"
 read_count.rarefied.sumCat = read_count.rarefied %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 ref_len.sumCat = ref_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+
+
+reads_per_len = data.frame(read_count.rarefied[,1:8], read_count.rarefied[,9:115]/ref_len[,9:115])
+reads_per_len.sumCat = reads_per_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 
 print("summarized count tbl:")
 print(read_count.rarefied.sumCat)
@@ -55,9 +65,9 @@ reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum),]
 
 top_ten_KO = (reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),])[1:12,]
 
-write.table(left_join(top_ten_KO, KO_names), file = "top_12_KO.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+write.table(left_join(top_ten_KO, KO_names), file = "top_12_KO.sum_them_len_norm.txt", sep = "\t", quote = F, row.names = F, col.names = F)
 
-write.table(left_join(filter(reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),], sum > 0), KO_names), file = "all_KO_with_names.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+write.table(left_join(filter(reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),], sum > 0), KO_names), file = "all_KO_with_names.sum_them_len_norm.txt", sep = "\t", quote = F, row.names = F, col.names = F)
 
 #Relative abundance
 reads_per_len.sumCat.relAbd = data.frame(

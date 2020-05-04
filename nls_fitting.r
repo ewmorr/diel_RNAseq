@@ -113,6 +113,9 @@ breaks = c("#E69F00", "#56B4E9", "#009E73")) +
 my_gg_theme
 dev.off()
 
+saveRDS(predict(nls.mod.moist.P1), file = "moisture.nls_fit.P1.rds")
+saveRDS(predict(nls.mod.moist.P2), file = "moisture.nls_fit.P2.rds")
+saveRDS(predict(nls.mod.moist.P3), file = "moisture.nls_fit.P3.rds")
 
 pdf("martiny_diel_phys_dat/moisture_time_nls_date_time.pdf", width = 10, height = 4)
 ggplot() +

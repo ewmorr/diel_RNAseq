@@ -8,19 +8,6 @@ require(lubridate)
 
 source("../ggplot_theme.txt")
 
-fancy_scientific <- function(l) {
-	# turn in to character string in scientific notation
-	l <- format(l, scientific = TRUE)
-	#reformat zeros
-	l <- gsub("0e\\+00","0",l)
-	# quote the part before the exponent to keep all the digits
-	l <- gsub("^(.*)e", "'\\1'e", l)
-	# turn the 'e+' into plotmath format
-	l <- gsub("e", "%*%10^", l)
-	# return this as an expression
-	parse(text=l)
-}
-
 #arguments for summarizing and output
 args = commandArgs(T)
 catToSum = args[1]
@@ -290,3 +277,98 @@ anova(reads_per_len.DBRDA.ordistep)
 reads_per_len.DBRDA.ordistep = ordistep(reads_per_len.DBRDA, scope = formula(reads_per_len.DBRDA.all), direction = "forward")
 
 
+
+
+##########################
+#USING  MOISTURE NLS FITS#
+
+nls.mod.moist.P1 = readRDS(file = "~/martiny_diel_phys_dat/moisture.nls_fit.P1.rds")
+nls.mod.moist.P2 = readRDS(file = "~/martiny_diel_phys_dat/moisture.nls_fit.P2.rds")
+nls.mod.moist.P3 = readRDS(file = "~/martiny_diel_phys_dat/moisture.nls_fit.P3.rds")
+
+#nls.mod.moist.P1 = nls.mod.moist.P1[7:length(nls.mod.moist.P1)]
+#nls.mod.moist.P2 = nls.mod.moist.P2[c(7:31,33:length(nls.mod.moist.P2))]
+#nls.mod.moist.P3 = nls.mod.moist.P3[7:length(nls.mod.moist.P3)]
+
+mosit_nls.df = data.frame(Sample = c(
+        "P1T0_metaT", "P1T1_metaT", "P1T2_metaT", "P1T3_metaT", "P1T4_metaT", "P1T5_metaT", "P1T6_metaT", "P1T7_metaT", "P1T8_metaT", "P1T9_metaT", "P1T10_metaT", "P1T11_metaT", "P1T12_metaT", "P1T13_metaT", "P1T14_metaT", "P1T15_metaT", "P1T16_metaT", "P1T17_metaT", "P1T18_metaT", "P1T19_metaT", "P1T20_metaT", "P1T21_metaT", "P1T22_metaT", "P1T23_metaT", "P1T24_metaT", "P1T25_metaT", "P1T26_metaT", "P1T27_metaT", "P1T28_metaT", "P1T29_metaT", "P1T30_metaT", "P1T31_metaT", "P1T32_metaT", "P1T33_metaT", "P1T34_metaT", "P1T35_metaT",
+        "P2T0_metaT", "P2T1_metaT", "P2T2_metaT", "P2T3_metaT", "P2T4_metaT", "P2T5_metaT", "P2T6_metaT", "P2T7_metaT", "P2T8_metaT", "P2T9_metaT", "P2T10_metaT", "P2T11_metaT", "P2T12_metaT", "P2T13_metaT", "P2T14_metaT", "P2T15_metaT", "P2T16_metaT", "P2T17_metaT", "P2T18_metaT", "P2T19_metaT", "P2T20_metaT", "P2T21_metaT", "P2T22_metaT", "P2T23_metaT", "P2T24_metaT", "P2T25_metaT", "P2T26_metaT", "P2T27_metaT", "P2T28_metaT", "P2T29_metaT", "P2T30_metaT", "P2T31_metaT", "P2T32_metaT", "P2T33_metaT", "P2T34_metaT", "P2T35_metaT",
+        "P3T0_metaT", "P3T1_metaT", "P3T2_metaT", "P3T3_metaT", "P3T4_metaT", "P3T5_metaT", "P3T6_metaT", "P3T7_metaT", "P3T8_metaT", "P3T9_metaT", "P3T10_metaT", "P3T11_metaT", "P3T12_metaT", "P3T13_metaT", "P3T14_metaT", "P3T15_metaT", "P3T16_metaT", "P3T17_metaT", "P3T18_metaT", "P3T19_metaT", "P3T20_metaT", "P3T21_metaT", "P3T22_metaT", "P3T23_metaT", "P3T24_metaT", "P3T25_metaT", "P3T26_metaT", "P3T27_metaT", "P3T28_metaT", "P3T29_metaT", "P3T30_metaT", "P3T31_metaT", "P3T32_metaT", "P3T33_metaT", "P3T34_metaT", "P3T35_metaT"),
+    moisture.nls_fit = c(nls.mod.moist.P1, nls.mod.moist.P2, nls.mod.moist.P3)
+)
+
+mapped_metadata.no_outliers.nls_fits = left_join(mapped.metadata.no_outliers, mosit_nls.df, by = "Sample")
+
+
+potential_explanatory_scope = data.frame(plot = mapped_metadata.no_outliers.nls_fits$Plot, temperature = scale(mapped_metadata.no_outliers.nls_fits$Temperature), time = (mapped_metadata.no_outliers.nls_fits$hours.cumulative.RNA), moist.nls = mapped_metadata.no_outliers.nls_fits$moisture.nls_fit, harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)], moisture = scale(mapped.metadata.no_outliers$Moisture)
+)
+
+
+reads_per_len.DBRDA = capscale(
+sqrt(reads_per_len.for_ord) ~ 1,
+distance = "bray",
+metaMDSdist = T,
+data = potential_explanatory_scope
+)
+
+
+reads_per_len.DBRDA.moist_nls = capscale(
+sqrt(reads_per_len.for_ord) ~ .,
+distance = "bray",
+metaMDSdist = T,
+data = potential_explanatory_scope
+)
+
+reads_per_len.DBRDA.ordistep.highStepHighPerm = ordistep(reads_per_len.DBRDA, scope = formula(reads_per_len.DBRDA.moist_nls), direction = "both", steps = 100, permutations = how(nperm = 999))
+reads_per_len.DBRDA.ordistep.highStepHighPerm
+reads_per_len.DBRDA.ordistep.highStepHighPerm$anova
+reads_per_len.DBRDA.ordistep.highStepHighPerm.terms = anova(reads_per_len.DBRDA.ordistep.highStepHighPerm, by = "terms")
+
+tot_sum_sq = sum(reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs)
+expln_sum_sq = sum(reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1:4])
+expln_sum_sq/tot_sum_sq
+var1_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1]/tot_sum_sq
+var2_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[2]/tot_sum_sq
+var3_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[3]/tot_sum_sq
+var4_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[4]/tot_sum_sq
+
+
+plot(reads_per_len.DBRDA.ordistep.highStepHighPerm)
+
+potential_explanatory_scope = data.frame(plot = mapped.metadata.no_outliers$Plot, moisture = scale(mapped.metadata.no_outliers$Moisture), temperature = scale(mapped.metadata.no_outliers$Temperature), time = scale(mapped.metadata.no_outliers$hours.cumulative.RNA), harmonic = harmonics_phase_shift[,which.max(phase_mod_res$sumSq)], timeOfDay = mapped.metadata.no_outliers$timeOfDay.RNA, timepoint = mapped.metadata.no_outliers$TimePoint
+)
+
+plot.df = data.frame(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$u[,1:2], potential_explanatory_scope)
+plot.df.biplot = data.frame(label = rownames(reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,]), reads_per_len.DBRDA.ordistep.highStepHighPerm$CCA$biplot[3:5,])
+
+
+pdf("dbRDA_best_fit_KO.pdf", width = 8, height = 6)
+ggplot() +
+geom_point(data = plot.df, aes(CAP1, CAP2, shape = plot, fill = timeOfDay), size = 3.5) +
+geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1/2.2, yend = CAP2/2.2), color = "black", arrow = arrow(length = unit(0.015, "npc"))) +
+#scale_color_gradient(low = "#0571b0", high = "#ca0020") +
+scale_shape_manual(values = c("P1" = 21,"P2" = 22, "P3" = 23)) +
+geom_text(data = plot.df.biplot, aes(CAP1/2, CAP2/2, label = label), size = 5) +
+scale_fill_gradient2(low = "black", high = "black", mid = "white", midpoint = 12, breaks = c(0,12,24), limits = c(0,24)) +
+labs(x = "dbRDA axis 1 (19.2% tot. variance)",
+y = "dbRDA axis 2 (2.4% tot. variance)",
+title = "Best fit dbRDA terms: plot, time, moisture, time harmonic\nConstrained variance = 0.26, P = 0.001",
+shape = "Plot",
+fill = "Time of day"
+) +
+my_gg_theme +
+theme(
+legend.title = element_text(size = 20, hjust = 0),
+plot.title = element_text(size = 18, hjust = 0)
+)
+dev.off()
+
+
+
+
+reads_per_len.DBRDA.moist_nls = capscale(
+sqrt(reads_per_len.for_ord) ~ plot + moist.nls,
+distance = "bray",
+metaMDSdist = T,
+data = potential_explanatory_scope
+)
