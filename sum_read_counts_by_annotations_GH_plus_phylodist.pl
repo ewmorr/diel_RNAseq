@@ -57,12 +57,12 @@ sub add_cov_to_anns{
 	foreach my $covInd (keys %cov){
 		
 		#if either of the annotation categories is undefined or there are no reads mapped skip to next
-		if(defined($annRef{$covInd}) == 0 || defined($annRef2{$covInd}) == 0 || ${ $cov{$covInd} }[1] == 0){next;}
+		if(defined($ann{$covInd}) == 0 || defined($ann2{$covInd}) == 0 || ${ $cov{$covInd} }[1] == 0){next;}
 		
         #foreach for GH ann categories in case there are multiple (which is few...)
         foreach my $catInd (keys %{ $ann{$covInd} }){
 
-            my $categoryIndex = $ann{$covInd}{$catInd}.";".$annRef2{$covInd};
+            my $categoryIndex = $ann{$covInd}{$catInd}.";".ann2{$covInd};
             if(defined($annCov{$categoryIndex} ) == 0){
                 $annCov{$categoryIndex}{"len"} = ${ $cov{$covInd} }[0];
                 $annCov{$categoryIndex}{"readCov"} = ${ $cov{$covInd} }[1];
