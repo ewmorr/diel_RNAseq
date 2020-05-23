@@ -29,102 +29,143 @@ ref_len$X = NULL
 
 read_count.rarefied = readRDS(file = "intermediate_RDS/KO_rarefied_count.rds")
 
-fungal_phyla = c("Ascomycota", "Basidiomycota", "Chytridiomycota", "Mucoromycota", "Blastocladiomycota", "Zoopagomycota")
-
-read_count.rarefied.fungi = read_count.rarefied %>% filter(Phylum %in% fungal_phyla)
-
-
-
 #To have dplyr interpret args correctly need to !! and parse_expr() (bc of NSE)
-catToSum = "KO"
-read_count.rarefied.sumCat = read_count.rarefied %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-ref_len.sumCat = ref_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-
-
-reads_per_len = data.frame(read_count.rarefied[,1:8], read_count.rarefied[,9:115]/ref_len[,9:115])
-reads_per_len.sumCat = reads_per_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-
-print("summarized count tbl:")
-print(read_count.rarefied.sumCat)
 #Divide read count by refLen to normalize reads recruited by contig length
-reads_per_len = data.frame(read_count.rarefied.sumCat[,1], read_count.rarefied.sumCat[,2:108]/ref_len.sumCat[,2:108] ) %>% as.tbl
+reads_per_len = data.frame(read_count.rarefied[,1:8], read_count.rarefied[,9:115]/ref_len[,9:115] ) %>% as.tbl
 reads_per_len[is.na(reads_per_len)] = 0
 
 mapped.metadata = mapped.metadata[match(colnames(reads_per_len[2:length(colnames(reads_per_len))]), mapped.metadata$Sample),]
 
-###################################
-#Read KO names
+fungal_phyla = c("Ascomycota", "Basidiomycota", "Chytridiomycota", "Mucoromycota", "Blastocladiomycota", "Zoopagomycota")
 
-KO_names = read.table("KO_term_names_rarefied_table.txt", sep = "\t")
-colnames(KO_names) = c("sumCat", "name")
+reads_per_len.fungi = reads_per_len %>% filter(Phylum %in% fungal_phyla)
+reads_per_len.bac = reads_per_len %>% filter(Kindom == "Bacteria")
 
-#look at totals by sumCat
-reads_per_len.sumCat = reads_per_len %>% group_by(sumCat) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-reads_per_len.sumCat.rowSum = data.frame(sumCat = reads_per_len.sumCat$sumCat, sum = reads_per_len.sumCat[2:length(colnames(reads_per_len.sumCat))] %>% rowSums)
-reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum),]
+reads_per_len.fungi.sum = data.frame(sumCat = "Fungi", count = colSums(reads_per_len.fungi[,9:115]), sample = names(reads_per_len.fungi[,9:115]))
 
-top_ten_KO = (reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),])[1:12,]
+reads_per_len.FB = rbind(
+    data.frame(sumCat = "Fungi", count = colSums(reads_per_len.fungi[,9:115]), Sample = names(reads_per_len.fungi[,9:115])),
+    data.frame(sumCat = "Bacteria", count = colSums(reads_per_len.bac[,9:115]), Sample = names(reads_per_len.bac[,9:115]))
+) %>%
+pivot_wider(., names_from = "sumCat", values_from = "count") %>%
+mutate(FB = Fungi/Bacteria)
 
-write.table(left_join(top_ten_KO, KO_names), file = "top_12_KO.sum_them_len_norm.txt", sep = "\t", quote = F, row.names = F, col.names = F)
+reads_per_len.FB.metadata = left_join(reads_per_len.FB, mapped.metadata, by = "Sample")
 
-write.table(left_join(filter(reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),], sum > 0), KO_names), file = "all_KO_with_names.sum_them_len_norm.txt", sep = "\t", quote = F, row.names = F, col.names = F)
-
-#Relative abundance
-reads_per_len.sumCat.relAbd = data.frame(
-reads_per_len.sumCat[,1],
-t(t(reads_per_len.sumCat[,2:length(reads_per_len.sumCat)])/colSums(reads_per_len.sumCat[,2:length(reads_per_len.sumCat)]))
-)
-
-saveRDS(reads_per_len.sumCat.relAbd, "KO_relative_abd.metaG.rds")
-write.table(reads_per_len.sumCat.relAbd, file = "KO_rel_abd.metaG.txt", sep = "\t", row.names = F, quote = F)
-
-reads_per_len.sumCat.relAbd.long = pivot_longer(reads_per_len.sumCat.relAbd,
-cols = -sumCat,
-names_to = "Sample",
-values_to = "rel_abd"
-)
-
-reads_per_len.sumCat.relAbd.long.metadata = left_join(reads_per_len.sumCat.relAbd.long, mapped.metadata, by = "Sample")
-require(RColorBrewer)
-reads_per_len.sumCat.relAbd.long.metadata.topTen = reads_per_len.sumCat.relAbd.long.metadata %>% filter(sumCat %in% top_ten_KO$sumCat)
-
-reads_per_len.sumCat.relAbd.long.metadata.topTen$sumCat = factor(reads_per_len.sumCat.relAbd.long.metadata.topTen$sumCat, levels = top_ten_KO$sumCat)
-
-p1 = ggplot(reads_per_len.sumCat.relAbd.long.metadata.topTen, aes(TimePoint, rel_abd, fill = sumCat)) +
-geom_col() +
-facet_wrap(~Plot) +
-scale_fill_brewer(palette = "Paired") +
-labs(x = "Time point", y = "Rel. abd.") +
-my_gg_theme
-
-pdf("KO_rel_abd_top_ten.metaG.pdf", width = 14, height = 6)
-p1
-dev.off()
+mapped.metadata = mapped.metadata[match(colnames(reads_per_len.FB[2:length(colnames(reads_per_len.FB))]), mapped.metadata$Sample),]
 
 
 
-p1 = ggplot(reads_per_len.sumCat.relAbd.long.metadata.topTen, aes(TimePoint, rel_abd)) +
-geom_point() +
-#geom_smooth() +
-facet_grid(sumCat~Plot, scale = "free_y") +
-scale_fill_brewer(palette = "Paired") +
-labs(x = "Time point", y = "Rel. abd.") +
-my_gg_theme
-
-p2 = ggplot(reads_per_len.sumCat.relAbd.long.metadata.topTen %>% filter(TimePoint > 5), aes(timeOfDay.RNA, rel_abd)) +
+p1 = ggplot(reads_per_len.FB.metadata, aes(TimePoint, FB)) +
 geom_point() +
 geom_smooth() +
-facet_wrap(Plot~sumCat, scale = "free_y") +
-scale_fill_brewer(palette = "Paired") +
-labs(x = "Time of Day", y = "Rel. abd.") +
+facet_wrap(~Plot) +
+labs(x = "Time point", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+geom_hline(yintercept = 1, linetype = 2) +
 my_gg_theme
 
-pdf("KO_rel_abd_top_ten_scatterPlots.metaG.pdf", width = 16, height = 20)
-print(p1)
-print(p2)
+exclude_timepoints = c(0,1,2,3,4,5)
+
+p2 = ggplot(reads_per_len.FB.metadata %>% filter(!TimePoint %in% exclude_timepoints), aes(timeOfDay.RNA, FB)) +
+geom_point() +
+geom_smooth() +
+facet_wrap(~Plot) +
+labs(x = "Time of day", y = "F:B") +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+pdf("FB_KO.pdf", width = 14, height = 6)
+grid.arrange(p1, p2, nrow = 2)
 dev.off()
 
-pdf("KO_rel_abd_top_ten_TOD_scatterPlots.metaG.pdf", width = 28, height = 10)
-#print(p1)
-print(p2)
-dev.off()
+p1 = ggplot(reads_per_len.FB.metadata %>% filter(Moisture >= 0), aes(Moisture, FB)) +
+geom_point(aes(color = Plot)) +
+geom_smooth(method = "lm", formula = y ~ poly(x, 3)) +
+#geom_smooth(method = "loess") +
+#facet_wrap(~Plot) +
+labs(x = "Moisture", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+scale_colour_manual(values = c("P1" = "#E69F00","P2" = "#56B4E9", "P3" = "#009E73")) +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+ggplot(reads_per_len.FB.metadata %>% filter(Moisture >= 0), aes(Moisture, FB, color = Plot)) +
+geom_point() +
+geom_smooth(method = "lm") +
+#geom_smooth(method = "loess") +
+#facet_wrap(~Plot) +
+labs(x = "Moisture", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+scale_colour_manual(values = c("P1" = "#E69F00","P2" = "#56B4E9", "P3" = "#009E73")) +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+
+p2 = ggplot(reads_per_len.FB.metadata, aes(Temperature, FB)) +
+geom_point(aes(color = Plot)) +
+geom_smooth(method = "lm", formula = y ~ poly(x, 2)) +
+#geom_smooth(method = "loess") +
+labs(x = "Temperature", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+scale_colour_manual(values = c("P1" = "#E69F00","P2" = "#56B4E9", "P3" = "#009E73")) +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+ggplot(reads_per_len.FB.metadata %>% filter(Moisture >= 0), aes(Temperature, FB)) +
+geom_point(aes(color = Moisture)) +
+geom_smooth(method = "lm", formula = y ~ poly(x, 2)) +
+#geom_smooth(method = "loess") +
+labs(x = "Temperature", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+scale_colour_continuous(trans = "sqrt") +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+ggplot(reads_per_len.FB.metadata %>% filter(Moisture >= 0), aes(Temperature, FB, color = Plot)) +
+geom_point() +
+geom_smooth(method = "lm") +
+#geom_smooth(method = "loess") +
+#facet_wrap(~Plot) +
+labs(x = "Temperature", y = "F:B") +
+scale_y_continuous(breaks = c(0,2,4,6)) +
+scale_colour_manual(values = c("P1" = "#E69F00","P2" = "#56B4E9", "P3" = "#009E73")) +
+geom_hline(yintercept = 1, linetype = 2) +
+my_gg_theme
+
+
+summary(lm(FB ~ poly(Moisture, 3), data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+
+summary(lm(FB ~ Plot/Moisture - 1, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+summary(lm(FB ~ Moisture*Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+summary(lm(FB ~ Moisture+Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+
+summary(lm(FB ~ Plot/Temperature - 1, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+summary(lm(FB ~ Temperature*Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+summary(lm(FB ~ Temperature+Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+
+
+summary(lme(fixed = FB ~ poly(Moisture,3), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+summary(lme(fixed = FB ~ Temperature, random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+
+anova(lme(fixed = FB ~ poly(Moisture,2), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+anova(lme(fixed = FB ~ Temperature, random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0)))
+
+mod1 = lme(fixed = FB ~ Moisture, random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+mod2 = lme(fixed = FB ~ poly(Moisture,2), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+mod3 = lme(fixed = FB ~ poly(Moisture,3), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+
+anova(mod1,mod2)
+anova(mod2,mod3)
+#third order poly is best fit
+anova(mod3)
+
+
+mod1 = lme(fixed = FB ~ Temperature, random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+mod2 = lme(fixed = FB ~ poly(Temperature,2), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+mod3 = lme(fixed = FB ~ poly(Temperature,3), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
+
+anova(mod1,mod2)
+anova(mod2,mod3)
+#second order poly is best fit
+mod4 = lme(fixed = FB ~ poly(Temperature,2) + poly(Moisture,3), random = ~1|Plot, data = reads_per_len.FB.metadata %>% filter(Moisture >= 0))
