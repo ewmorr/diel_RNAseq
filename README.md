@@ -285,6 +285,11 @@ qsub ~/diel_RNAseq/join_ann_tables_20_gene_tax.sh
 qsub ~/diel_RNAseq/sum_read_counts_by_GH_annotation_metagenome_mapping.sh
 qsub ~/diel_RNAseq/join_ann_tables_GH.sh
 ```
+#### sum annotations by GH
+```
+qsub ~/diel_RNAseq/sum_read_counts_by_annotations_GH_plus_phylodist.sh
+qsub ~/diel_RNAseq/join_ann_tables_GH_phylodist.sh
+```
 
 ##### Running locally
 ```
