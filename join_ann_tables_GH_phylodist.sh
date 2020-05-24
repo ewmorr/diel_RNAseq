@@ -8,5 +8,5 @@
 
 cd $HOME
 
-perl ~/bin/join_count_ann_tables.pl /dfs3/bio/morrise1/martiny_diel_seqs/ read_counts.GH.phylodist
+perl ~/diel_RNAseq/join_count_ann_tables.pl $BIODIR/martiny_diel_seqs/ read_counts.GH.phylodist
 
