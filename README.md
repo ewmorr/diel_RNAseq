@@ -285,12 +285,18 @@ qsub ~/diel_RNAseq/join_ann_tables_20_gene_tax.sh
 qsub ~/diel_RNAseq/sum_read_counts_by_GH_annotation_metagenome_mapping.sh
 qsub ~/diel_RNAseq/join_ann_tables_GH.sh
 ```
-#### sum annotations by GH
+#### sum annotations by GH and phylosit
 ```
 qsub ~/diel_RNAseq/sum_read_counts_by_annotations_GH_plus_phylodist.sh
 qsub ~/diel_RNAseq/join_ann_tables_GH_phylodist.sh
 ```
+#### run locally
+```
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_GH_phylodist.pl read_counts.GH.phylodist.readCount.join > read_counts.GH.phylodist.readCount.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_GH_phylodist.pl read_counts.GH.phylodist.readCountNumGenes.join > read_counts.GH.phylodist.readCountNumGenes.join.cleanStrings
+perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_GH_phylodist.pl read_counts.GH.phylodist.readCountRefLen.join > read_counts.GH.phylodist.readCountRefLen.join.cleanStrings
 
+```
 ##### Running locally
 ```
 perl ~/repo/diel_RNAseq/split_and_clean_taxonomic_strings_20_gene_tax.pl read_counts.20_gene_taxonomy.readCount.join > read_counts.20_gene_taxonomy.readCount.join.cleanStrings

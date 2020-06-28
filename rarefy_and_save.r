@@ -34,3 +34,14 @@ print(c("minimum sequence depth: ", minDepth))
 
 read_count.rarefied = data.frame(read_count[,1], t(rrarefy(t(read_count[,2:108]), sample = minDepth)) )
 saveRDS(read_count.rarefied, file = "intermediate_RDS/GH_rarefied_count.rds")
+
+
+read_count = read.table("read_counts.GH.phylodist.readCount.join.cleanStrings", header = T, sep = "\t", row.names = F) %>% as.tbl
+read_count$P2T31_metaT = NULL
+read_count$X = NULL
+
+minDepth = (colSums(read_count[,9:115]) %>% sort)[1]
+print(c("minimum sequence depth: ", minDepth))
+
+read_count.rarefied = data.frame(read_count[,1:8], t(rrarefy(t(read_count[,9:115]), sample = minDepth)) )
+saveRDS(read_count.rarefied, file = "intermediate_RDS/GH.phylodist_rarefied_count.rds")
