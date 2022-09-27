@@ -48,6 +48,8 @@ Dereplicate gene calls
 qsub ~/diel_RNAseq/derep_usearch.sh
 ````
 
+Output is `genes_P1P2P3.derep.fna`
+
 ### mapping for read counts. Reads mapped per target length is input for downstream analyses
 
 output mapped RNA reads per contig with samtools idxstats
@@ -68,8 +70,14 @@ total read count mapped, total length of target reference contigs that were mapp
 ```
 qsub ~/diel_RNAseq/join_ann_tables.sh
 ```
-
 #### This same workflow or similar applies for both coverage based and read count based mapping
+
+#### Also mapping metagenomes as of 09072022 for new figs using SLURm server
+```
+sbatch ~/diel_RNAseq/map_diel_dNA_to_genes_read_counts.sh
+```
+#### Will need to follow perl pipeline above to get annotation tables
+
 
 #Get read mapping totals and total reads
 
@@ -329,3 +337,7 @@ Rscript ~/repo/diel_RNAseq/delta_delta_plots_summarize_by_category.20_gene.r Edg
 Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.r KO KO_NMDS
 Rscript ~/repo/diel_RNAseq/NMDS_plots_summarize_by_category.20_gene.r Edge_num 20_gene_NMDS
 ```
+
+# KEGG mapping of top 50 KO terms
+
+perl ~/repo/KEGG_map/summarize_KEGG.pl ~/KEGG_pathways_maps/ko00001-2.keg ~/martiny_diel_seqs/top_50_KO_terms.txt > ~/martiny_diel_seqs/top_50_KEGG_map.txt

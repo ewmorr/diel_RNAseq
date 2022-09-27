@@ -135,6 +135,27 @@ scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
 my_gg_theme
 dev.off()
 
+p2 = ggplot() +
+geom_point(data = subset(diel_phys_dat, Plot == "P1"), aes(y = Moisture, x = as.POSIXct(temptime), color = cbPalette[2]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P1"), aes(y = predict(nls.mod.moist.P1.time), x = as.POSIXct(temptime)), color = cbPalette[2], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P2"), aes(y = Moisture, x = as.POSIXct(temptime), color = cbPalette[3]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P2"), aes(y = predict(nls.mod.moist.P2.time), x = as.POSIXct(temptime)), color = cbPalette[3], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P3"), aes(y = Moisture, x = as.POSIXct(temptime), color = cbPalette[4]), size = 2) +
+#geom_line(data = subset(diel_phys_dat, Plot == "P3"), aes(y = predict(nls.mod.moist.P3.time), x = as.POSIXct(datetime)), color = cbPalette[4], size = 1.5) +
+xlab("Date time") +
+ylab("Moisture content (%)") +
+#scale_y_continuous(labels = fancy_scientific)+
+scale_colour_manual(labels = c("#E69F00" = "Plot 1", "#56B4E9"="Plot 2", "#009E73"="Plot 3"),
+values = c("#E69F00" = cbPalette[2], "#56B4E9"=cbPalette[3], "#009E73"=cbPalette[4]),
+breaks = c("#E69F00", "#56B4E9", "#009E73"),
+guide = F) +
+scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
+labs(title = "B") +
+my_gg_theme +
+theme(plot.title = element_text(hjust = -0.08),
+axis.title.x = element_blank(),
+axis.text.x = element_blank())
+
 #############
 #Temperature#
 #############
@@ -205,6 +226,29 @@ scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
 my_gg_theme
 dev.off()
 
+p1 = ggplot() +
+geom_point(data = subset(diel_phys_dat, Plot == "P1"), aes(y = Temperature, x = as.POSIXct(temptime), color = cbPalette[2]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P1"), aes(y = predict(nls.mod.temp.P1), x = as.POSIXct(temptime)), color = cbPalette[2], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P2"), aes(y = Temperature, x = as.POSIXct(temptime), color = cbPalette[3]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P2"), aes(y = predict(nls.mod.temp.P2), x = as.POSIXct(temptime)), color = cbPalette[3], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P3"), aes(y = Temperature, x = as.POSIXct(temptime), color = cbPalette[4]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P3"), aes(y = predict(nls.mod.temp.P3), x = as.POSIXct(temptime)), color = cbPalette[4], size = 1.5) +
+xlab("Date time") +
+ylab(expression("Temperature " ( degree*C))) +
+#scale_y_continuous(labels = fancy_scientific)+
+scale_colour_manual(labels = c("#E69F00" = "Plot 1", "#56B4E9"="Plot 2", "#009E73"="Plot 3"),
+values = c("#E69F00" = cbPalette[2], "#56B4E9"=cbPalette[3], "#009E73"=cbPalette[4]),
+breaks = c("#E69F00", "#56B4E9", "#009E73"),
+guide = F) +
+scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
+labs(title = "A") +
+my_gg_theme +
+theme(
+plot.title = element_text(hjust = -0.08),
+axis.title.x = element_blank(),
+axis.text.x = element_blank()
+)
+
 ########
 #Respiration by litter dry weight
 ########
@@ -261,12 +305,12 @@ lines(na.omit(subset(diel_phys_dat, Plot == "P3")$hours.cumulative.temp), predic
 
 pdf("martiny_diel_phys_dat/resp_per_lit_nls_date_time.pdf", width = 8, height = 4)
 ggplot() +
-geom_point(data = na.omit(subset(diel_phys_dat, Plot == "P1")), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[2]), size = 2) +
-geom_line(data = na.omit(subset(diel_phys_dat, Plot == "P1")), aes(y = predict(nls.mod.resp.P1), x = as.POSIXct(temptime)), color = cbPalette[2], size = 1.5) +
-geom_point(data = na.omit(subset(diel_phys_dat, Plot == "P2")), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[3]), size = 2) +
+geom_point(data = subset(diel_phys_dat, Plot == "P1"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[2]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P1"), aes(y = c(predict(nls.mod.resp.P1), rep(NA,8)), x = as.POSIXct(temptime)), color = cbPalette[2], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P2"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[3]), size = 2) +
 #geom_line(data = na.omit(subset(diel_phys_dat, Plot == "P2")), aes(y = predict(nls.mod.resp.P2), x = as.POSIXct(temptime)), color = cbPalette[3], size = 1.5) +
-geom_point(data = na.omit(subset(diel_phys_dat, Plot == "P3")), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[4]), size = 2) +
-geom_line(data = na.omit(subset(diel_phys_dat, Plot == "P3")), aes(y = predict(nls.mod.resp.P3), x = as.POSIXct(temptime)), color = cbPalette[4], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P3"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[4]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P3"), aes(y = c(predict(nls.mod.resp.P3), rep(NA,8)), x = as.POSIXct(temptime)), color = cbPalette[4], size = 1.5) +
 xlab("Date time") +
 ylab(expression(paste(mu, "g CO"[2],"-C minute"^-1, " g"^-1, "litter" ))) +
 #scale_y_continuous(labels = fancy_scientific)+
@@ -277,7 +321,32 @@ scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
 my_gg_theme
 dev.off()
 
+p3 = ggplot() +
+geom_point(data = subset(diel_phys_dat, Plot == "P1"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[2]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P1"), aes(y = c(predict(nls.mod.resp.P1), rep(NA,8)), x = as.POSIXct(temptime)), color = cbPalette[2], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P2"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[3]), size = 2) +
+#geom_line(data = na.omit(subset(diel_phys_dat, Plot == "P2")), aes(y = predict(nls.mod.resp.P2), x = as.POSIXct(temptime)), color = cbPalette[3], size = 1.5) +
+geom_point(data = subset(diel_phys_dat, Plot == "P3"), aes(y = resp.per.dry.weight, x = as.POSIXct(temptime), color = cbPalette[4]), size = 2) +
+geom_line(data = subset(diel_phys_dat, Plot == "P3"), aes(y = c(predict(nls.mod.resp.P3), rep(NA,8)), x = as.POSIXct(temptime)), color = cbPalette[4], size = 1.5) +
+xlab("Date time") +
+ylab(expression(paste(mu, "g CO"[2],"-C minute"^-1, " g"^-1, "litter" ))) +
+labs(title = "C") +
+#scale_y_continuous(labels = fancy_scientific)+
+scale_colour_manual(labels = c("#E69F00" = "Plot 1", "#56B4E9"="Plot 2", "#009E73"="Plot 3"),
+values = c("#E69F00" = cbPalette[2], "#56B4E9"=cbPalette[3], "#009E73"=cbPalette[4]),
+breaks = c("#E69F00", "#56B4E9", "#009E73")) +
+scale_x_datetime( date_breaks = "8 hours", date_labels = "%m/%d\n%H:%M") +
+my_gg_theme +
+theme(plot.title = element_text(hjust = -0.0775, margin=margin(b = 30)),
+legend.position = c(0.9,0.5))
 
+###################
+#Plot for pub
+require(gridExtra)
+
+pdf(file = "~/martiny_diel_phys_dat/Fig_1_temp_moisture_resp_nls.pdf", width = 10, height = 12)
+grid.arrange(p1,p2,p3, nrow = 3)
+dev.off()
 
 ########
 #Respiration by cell_abd

@@ -43,7 +43,6 @@ ref_len$X = NULL
 
 read_count.rarefied = readRDS(file = "intermediate_RDS/GH_rarefied_count.rds")
 
-
 reads_per_len = data.frame(Category = read_count.rarefied[,1], read_count.rarefied[,2:108]/ref_len[,2:108] ) %>% as.tbl
 reads_per_len[is.na(reads_per_len)] = 0
 
@@ -223,9 +222,9 @@ geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1/3, yend = CAP2
 scale_shape_manual(values = c("P1" = 21,"P2" = 22, "P3" = 23)) +
 geom_text(data = plot.df.biplot, aes(CAP1/2.75, CAP2/2.75, label = label), size = 5) +
 scale_fill_gradient2(low = "black", high = "black", mid = "white", midpoint = 12, breaks = c(0,12,24), limits = c(0,24)) +
-labs(x = "dbRDA axis 1 (9.7% tot. variance)",
+labs(x = "dbRDA axis 1 (11.8% tot. variance)",
 y = "dbRDA axis 2 (2.0% tot. variance)",
-title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.16, P = 0.001",
+title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.15, P = 0.001",
 shape = "Plot",
 fill = "Time of day"
 ) +
@@ -358,8 +357,8 @@ expln_sum_sq/tot_sum_sq
 var1_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[1]/tot_sum_sq
 var2_expln_var = reads_per_len.DBRDA.ordistep.highStepHighPerm.terms$SumOfSqs[2]/tot_sum_sq
 
-#Plot == 0.125096 tot. variance
-#moisture == 0.02141625 tot. variance
+#Plot == 0.131 tot. variance
+#moisture == 0.0216 tot. variance
 
 
 plot(reads_per_len.DBRDA.ordistep.highStepHighPerm)
@@ -381,9 +380,9 @@ geom_segment(data = plot.df.biplot, aes(x = 0, y = 0, xend = CAP1/3, yend = CAP2
 scale_shape_manual(values = c("P1" = 21,"P2" = 22, "P3" = 23)) +
 geom_text(data = plot.df.biplot, aes(CAP1/2.75, CAP2/2.75, label = label), size = 5) +
 scale_fill_gradient2(low = "black", high = "black", mid = "white", midpoint = 12, breaks = c(0,12,24), limits = c(0,24)) +
-labs(x = "dbRDA axis 1 (12.8% tot. variance)",
+labs(x = "dbRDA axis 1 (12.5% tot. variance)",
 y = "dbRDA axis 2 (1.9% tot. variance)",
-title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.17, P = 0.001",
+title = "Best fit dbRDA terms: plot, moisture\nConstrained variance = 0.15, P = 0.001",
 shape = "Plot",
 fill = "Time of day"
 ) +

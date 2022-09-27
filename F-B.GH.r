@@ -34,7 +34,7 @@ read_count.rarefied = readRDS(file = "intermediate_RDS/GH.phylodist_rarefied_cou
 reads_per_len = data.frame(read_count.rarefied[,1:8], read_count.rarefied[,9:115]/ref_len[,9:115] ) %>% as.tbl
 reads_per_len[is.na(reads_per_len)] = 0
 
-mapped.metadata = mapped.metadata[match(colnames(reads_per_len[2:length(colnames(reads_per_len))]), mapped.metadata$Sample),]
+mapped.metadata = mapped.metadata[match(colnames(reads_per_len[9:length(colnames(reads_per_len))]), mapped.metadata$Sample),]
 
 fungal_phyla = c("Ascomycota", "Basidiomycota", "Chytridiomycota", "Mucoromycota", "Blastocladiomycota", "Zoopagomycota")
 

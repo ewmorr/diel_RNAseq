@@ -33,8 +33,8 @@ reads_per_len[is.na(reads_per_len)] = 0
 
 catToSum = "Category"
 #To have dplyr interpret args correctly need to !! and parse_expr() (bc of NSE)
-reads_per_len.sumCat = reads_per_len %>% group_by(sumCat = !!parse_expr(catToSum)) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
-
+reads_per_len.sumCat = reads_per_len %>% group_by(Category) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+colnames(reads_per_len.sumCat)[1] = "sumCat"
 
 print("summarized count tbl:")
 print(read_count.rarefied.sumCat)
@@ -48,16 +48,33 @@ mapped.metadata = mapped.metadata[match(colnames(reads_per_len[2:length(colnames
 
 #look at totals by sumCat
 reads_per_len.sumCat = reads_per_len %>% group_by(sumCat) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
+
+
+
 reads_per_len.sumCat.rowSum = data.frame(sumCat = reads_per_len.sumCat$sumCat, sum = reads_per_len.sumCat[2:length(colnames(reads_per_len.sumCat))] %>% rowSums)
 reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum),]
+reads_per_len.sumCat.rowSum.RA = data.frame(
+    sumCat = reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum),"sumCat"],
+    RA = reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum),"sum"]/sum(reads_per_len.sumCat.rowSum$sum)
+)
 
-top_ten_GH = (reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),])[1:12,]
+
+top_ten_GH = (reads_per_len.sumCat.rowSum[order(reads_per_len.sumCat.rowSum$sum, decreasing = T),])[1:10,]
 
 #Relative abundance
 reads_per_len.sumCat.relAbd = data.frame(
 reads_per_len.sumCat[,1],
 t(t(reads_per_len.sumCat[,2:length(reads_per_len.sumCat)])/colSums(reads_per_len.sumCat[,2:length(reads_per_len.sumCat)]))
 )
+#For relative abundance of top ten by sample
+
+reads_per_len.sumCat.relAbd
+
+reads_per_len.sumCat.relAbd.top10 = reads_per_len.sumCat.relAbd %>% filter(sumCat %in% top_ten_GH$sumCat)
+colSums(reads_per_len.sumCat.relAbd.top10[,2:ncol(reads_per_len.sumCat.relAbd.top10)])
+colSums(reads_per_len.sumCat.relAbd.top10[,2:ncol(reads_per_len.sumCat.relAbd.top10)]) %>% range
+
+
 
 saveRDS(reads_per_len.sumCat.relAbd, "GH_relative_abd.metaG.norm_then_sum.rds")
 write.table(reads_per_len.sumCat.relAbd, file = "GH_rel_abd.metaG.norm_then_sum.txt", sep = "\t", row.names = F, quote = F)

@@ -20,6 +20,7 @@ metadata = metadata %>% filter(Sample != "P2T31_metaT")
 metadata$timeOfDay.RNA = (as.numeric(as.POSIXlt(metadata$timeOfDay.RNA, format = "%H:%M") %>% hour) + as.numeric((as.POSIXlt(metadata$timeOfDay.RNA, format = "%H:%M") %>% minute)/60) ) %>% signif(2)
 
 mapped.metadata = full_join(total_mapped, metadata, by = "Sample")
+mapped.metadata$Time.bead.beat = strptime(as.character(mapped.metadata$Time.bead.beat), '%m/%d/%Y %H:%M')
 
 
 #RNA seq data, ref_len is the total length of reference contigs per category
