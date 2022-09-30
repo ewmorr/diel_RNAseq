@@ -10,13 +10,18 @@ module load linuxbrew/colsa
 SUBJECT=$HOME/martiny_diel_metagenomes/genes_P1P2P3.derep.fna
 READSDIR=$HOME/martiny_diel_metagenomes
 
-bwa index $SUBJECT
+#bwa index $SUBJECT
 
 for i in $READSDIR/*.fastq.gz
 do
 	FILE=${i##*/}
-	SUBDIR=${file%%.filter-METAGENOME.fastq.gz}
-    echo "starting $plot"
+    SUBDIR=${FILE%.filter-METAGENOME.fastq.gz}
+    if [ $SUBDIR = "P1T30" ]
+    then
+        continue
+    fi
+    
+    echo starting $SUBDIR
 
 	srun bwa mem -M -t 24 $SUBJECT $i > $READSDIR/$SUBDIR/raw_mapped.sam
 
