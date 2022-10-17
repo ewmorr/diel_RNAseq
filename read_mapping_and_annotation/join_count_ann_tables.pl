@@ -82,7 +82,7 @@ sub print_anns{
 	foreach my $dir (@dirs){
 		print $dir, "\n";
 	}
-	my $file = $ARGV[1];#file within dirs that cintains the sample data
+	my $file = $ARGV[1];#file within dirs that contains the sample data
 
 	my($annListRef, $annDatRef) = ann_hash(\@dirs, $dir, $file);
 	print_anns($annListRef, $annDatRef, \@dirs, $file);

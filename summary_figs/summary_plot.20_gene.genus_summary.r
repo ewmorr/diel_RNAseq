@@ -70,6 +70,7 @@ reads_per_len$Phylum %>% unique %>% length
 #38
 
 #look at totals by Genus
+#retaining phylum in group_by has odd entries so just using genus for grouping
 reads_per_len.Genus = reads_per_len %>% group_by(Genus) %>% summarize_if(is.numeric,sum,na.rm = TRUE)
 nrow(reads_per_len.Genus)
 #245
@@ -81,14 +82,17 @@ top_50_genera = (reads_per_len.Genus.rowSum[order(reads_per_len.Genus.rowSum$sum
   .[1:50,]
 top_50_genera$global_RA = top_50_genera$sum/sum(reads_per_len.Genus.rowSum$sum)
 
+plot(top_50_genera$global_RA)
+
+#######################
 #rejoin with Phylum to get taxonomic names
-#retaining phylum in group_by has odd entries
+
 
 rank_mat.uni = rank_mat %>% unique
 #It looks like the proteobacteria clades are not listed at phylum level but instead at class level
 rank_mat.uni %>% filter(Phylum == 1224) %>% select(Phylum, Class) %>% unique
 
-#######################
+
 #Write tables for editing and adding names from NCBI (https://www.ncbi.nlm.nih.gov/Taxonomy)
 top_50_genera.genus_strings = top_50_genera %>% pull(Genus)
 top_50_genera.phylum_strings = left_join(top_50_genera, rank_mat.uni %>% select(Genus, Phylum, Class), by = "Genus") %>% select(Phylum, Class) %>% unique
@@ -99,55 +103,43 @@ write.table(top_50_genera.genus_strings, "top_50_genera.genus_strings.txt", quot
 write.table(top_50_genera.phylum_strings, "top_50_genera.phylum_strings.txt", quote = F, sep = "\t", row.names = F, col.names = F)
 write.table(top_50_genera.tax_strings, "top_50_genera.tax_strings.txt", quote = F, sep = "\t", row.names = F, col.names = F)
 
-plot(top_50_genera$global_RA)
+taxon_names = read.table("top_50_genera.tax_strings.names.TO_JOIN.txt", header = T, sep = "\t")
+taxon_names$Genus = taxon_names$Genus %>% as.factor
+top_50_genera = left_join(top_50_genera, taxon_names, by = "Genus")
 
 #Use top 50 taxa list to filter table for NLS fitting
-#var names in mapped meta Plot, hours.cumulative.RNA
-
-
-
-#Stick with "Edge_num" summary for now
-top_50_OTUs = (reads_per_len.Edge_num.rowSum[order(reads_per_len.Edge_num.rowSum$sum, decreasing = T),])[1:50,]
-top_50_OTUs$global_RA = top_50_OTUs$sum/sum(reads_per_len.Tax_name.rowSum$sum)
-
-write.table(top_50_OTUs, "top_50_OTUs.txt", quote = F, sep = "\t", row.names = F)
-
-plot(top_50_OTUs$global_RA)
-
-top_50_OTUs$cat = paste(top_50_OTUs$Tax_name, top_50_OTUs$Edge_num, sep = ".")
-
-#if wanting to summarize by a specific taxonomic level (e.g., genus) can look at markers2taxonomy.txt and use the taxnomicString
 
 ############################################
 #Filter summarized tax_name table to top 50
 ############################################
 
-reads_per_len.Tax_name.top_50 = reads_per_len.Tax_name %>% filter(Tax_name %in% top_50_genera$Tax_name)
-reads_per_len.Edge_num.top_50 = reads_per_len.Edge_num %>% filter(Edge_num %in% top_50_OTUs$Edge_num)
-
-#For lowess, split into groups of samples per plot. Can just do this instead with select(starts_with())
-#P1_samples = mapped.metadata %>% filter(Plot == "P1") %>% pull(Sample)
-#P2_samples = mapped.metadata %>% filter(Plot == "P2") %>% pull(Sample)
-#P3_samples = mapped.metadata %>% filter(Plot == "P3") %>% pull(Sample)
+reads_per_len.Genus.top_50 = reads_per_len.Genus %>% filter(Genus %in% top_50_genera$Genus)
 
 ##########################################
 #Overall PERMANOVA. performed on Edge_num
 ##########################################
 
+#Filter out NA and "" genera
+reads_per_len.Genus.filtered = reads_per_len.Genus %>% filter(Genus != "NA" & Genus != "")
+reads_per_len.Genus %>% nrow
+#245
+reads_per_len.Genus.filtered %>% nrow
+#243
+
 P1_times = mapped.metadata %>% filter(Plot == "P1") %>% pull(hours.cumulative.RNA)
 P2_times = mapped.metadata %>% filter(Plot == "P2") %>% pull(hours.cumulative.RNA)
 P3_times = mapped.metadata %>% filter(Plot == "P3") %>% pull(hours.cumulative.RNA)
 
-reads_per_len.Edge_num.P1 = reads_per_len.Edge_num[,3:ncol(reads_per_len.Edge_num)] %>% select(starts_with("P1"))
-reads_per_len.Edge_num.P2 = reads_per_len.Edge_num[,3:ncol(reads_per_len.Edge_num)] %>% select(starts_with("P2"))
-reads_per_len.Edge_num.P3 = reads_per_len.Edge_num[,3:ncol(reads_per_len.Edge_num)] %>% select(starts_with("P3"))
+reads_per_len.Genus.filtered.P1 = reads_per_len.Genus.filtered[,2:ncol(reads_per_len.Genus.filtered)] %>% select(starts_with("P1"))
+reads_per_len.Genus.filtered.P2 = reads_per_len.Genus.filtered[,2:ncol(reads_per_len.Genus.filtered)] %>% select(starts_with("P2"))
+reads_per_len.Genus.filtered.P3 = reads_per_len.Genus.filtered[,2:ncol(reads_per_len.Genus.filtered)] %>% select(starts_with("P3"))
 
 lowess.list.full = list()
 
-for(i in 1:nrow(reads_per_len.Edge_num.P1)){
-  lowess.p1 = lowess(x = P1_times, y = reads_per_len.Edge_num.P1[i,], f = 6/36)
-  lowess.p2 = lowess(x = P2_times, y = reads_per_len.Edge_num.P2[i,], f = 6/36)
-  lowess.p3 = lowess(x = P3_times, y = reads_per_len.Edge_num.P3[i,], f = 6/36)
+for(i in 1:nrow(reads_per_len.Genus.filtered.P1)){
+  lowess.p1 = lowess(x = P1_times, y = reads_per_len.Genus.filtered.P1[i,], f = 6/36)
+  lowess.p2 = lowess(x = P2_times, y = reads_per_len.Genus.filtered.P2[i,], f = 6/36)
+  lowess.p3 = lowess(x = P3_times, y = reads_per_len.Genus.filtered.P3[i,], f = 6/36)
   lowess.list.full[[i]] = data.frame(
     plot = c(rep("P1", length(P1_times)), rep("P2", length(P2_times)), rep("P3", length(P3_times)) ),
     x = c(lowess.p1$x, lowess.p2$x, lowess.p3$x), 
@@ -155,14 +147,13 @@ for(i in 1:nrow(reads_per_len.Edge_num.P1)){
   )
 }
 
-lowess.full.df = bind_rows(lowess.list.full, .id = "OTU")
-#lowess.list.full.df = lowess.list.full.df %>% mutate(row = row_number())
-lowess.OTU_table = pivot_wider(lowess.full.df, id_cols = c(plot,x), names_from = OTU, values_from = y)
+lowess.full.df = bind_rows(lowess.list.full, .id = "Genus")
+lowess.OTU_table = pivot_wider(lowess.full.df, id_cols = c(plot,x), names_from = Genus, values_from = y)
 
 #There are negative values. need to add a constant
 lowess.OTU_table[,3:ncol(lowess.OTU_table)] %>% range
 
-lowess.adonis = adonis2(lowess.OTU_table[,3:ncol(lowess.OTU_table)]+0.04899737 ~ sin(2*pi*x/24) + cos(2*pi*x/24) + plot + x, data =lowess.OTU_table) #putting the diel signal variates in front because adonis is sensitive to order of input and these are quite small. Want to pick up max diel
+lowess.adonis = adonis2(lowess.OTU_table[,3:ncol(lowess.OTU_table)]+0.054171 ~ sin(2*pi*x/24) + cos(2*pi*x/24) + plot + x, data =lowess.OTU_table) #putting the diel signal variates in front because adonis is sensitive to order of input and these are quite small. Want to pick up max diel
 
 lowess.adonis
 lowess.adonis %>% str
@@ -177,52 +168,15 @@ lowess.adonis.coefs.long = lowess.adonis.coefs %>% pivot_longer(cols = -cat, nam
 ###################################################
 
 
-#testing loop
-#i = 1
-#temp_tax = reads_per_len.Tax_name.top_50[i,1] %>% data.frame %>% unname
-#temp_dat.P1 = temp_dat %>% select(starts_with("P1")) %>% as.data.frame %>% unname 
-#temp_dat.P2 = temp_dat %>% select(starts_with("P2")) %>% as.data.frame %>% unname 
-#temp_dat.P3 = temp_dat %>% select(starts_with("P3")) %>% as.data.frame %>% unname 
-
-#plot(P1_times, temp_dat.P1)
-#length(temp_dat.P1)
-
-#foo = lowess(x = P1_times, y = temp_dat.P1, f = 6/36)
-#lines(foo, col = "blue")
-#foo = lowess(x = P1_times, y = temp_dat.P1, f = 3/36)
-#lines(foo, col = "red")
-#foo = lowess(x = P1_times, y = temp_dat.P1, f = 12/36)
-#lines(foo, col = "black")
-
-#lowess.p1 = lowess(x = P1_times, y = temp_dat.P1, f = 6/36)
-#lowess.p2 = lowess(x = P2_times, y = temp_dat.P2, f = 6/36)
-#lowess.p3 = lowess(x = P3_times, y = temp_dat.P3, f = 6/36)
-
-#lowess_dat = data.frame(x = c(lowess.p1$x, lowess.p2$x, lowess.p3$x), y = c(lowess.p1$y, lowess.p2$y, lowess.p3$y))
-
-#full_dat.lowess = cbind(mapped.metadata %>% select(Plot), lowess_dat)
-
-#lowess.aov = aov(y ~ Plot + x + sin(2*pi*x/24) + cos(2*pi*x/24), data = full_dat.lowess)
-#coefs.lowess = summary(lowess.aov)
-
-#data.frame(
-#  cat = temp_tax, 
-#  plot = coefs.lowess[[1]][1,2], 
-#  trend = coefs.lowess[[1]][2,2],
-#  cycle = coefs.lowess[[1]][3,2] + coefs.lowess[[1]][4,2],
-#  resid = coefs.lowess[[1]][5,2]
-#  )
-
-
 ##################
-#Tax_name summary
+#Genus summary
 ##################
 
 coefs.list = list()
 
 for(i in 1:50){
-  temp_tax = reads_per_len.Tax_name.top_50[i,1] %>% data.frame %>% unlist %>% unname %>% as.character
-  temp_dat = reads_per_len.Tax_name.top_50[i,2:ncol(reads_per_len.Tax_name.top_50)] 
+  temp_tax = reads_per_len.Genus.top_50[i,1] %>% data.frame %>% unlist %>% unname %>% as.character
+  temp_dat = reads_per_len.Genus.top_50[i,2:ncol(reads_per_len.Genus.top_50)] 
   
   #filter by plot
   temp_dat.P1 = temp_dat %>% select(starts_with("P1")) %>% as.data.frame %>% unlist %>% unname
@@ -254,52 +208,8 @@ for(i in 1:50){
 }
 
 coefs.lowess.df = bind_rows(coefs.list, .id = "cat")
-
-##################
-#Edge_num summary
-##################
-
-coefs.list.en = list()
-
-for(i in 1:50){
-  temp_tax = paste(
-    reads_per_len.Edge_num.top_50[i,2] %>% data.frame %>% unlist %>% unname %>% as.character,
-    reads_per_len.Edge_num.top_50[i,1] %>% data.frame %>% unlist %>% unname %>% as.character,
-    sep = "."
-  )
-  temp_dat = reads_per_len.Edge_num.top_50[i,3:ncol(reads_per_len.Edge_num.top_50)] 
-  
-  #filter by plot
-  temp_dat.P1 = temp_dat %>% select(starts_with("P1")) %>% as.data.frame %>% unlist %>% unname
-  temp_dat.P2 = temp_dat %>% select(starts_with("P2")) %>% as.data.frame %>% unlist%>% unname 
-  temp_dat.P3 = temp_dat %>% select(starts_with("P3")) %>% as.data.frame %>% unlist%>% unname 
-  #perform lowess smooth
-  lowess.p1 = lowess(x = P1_times, y = temp_dat.P1, f = 6/36)
-  lowess.p2 = lowess(x = P2_times, y = temp_dat.P2, f = 6/36)
-  lowess.p3 = lowess(x = P3_times, y = temp_dat.P3, f = 6/36)
-  #combine dat
-  lowess_dat = data.frame(x = c(lowess.p1$x, lowess.p2$x, lowess.p3$x), y = c(lowess.p1$y, lowess.p2$y, lowess.p3$y))
-  full_dat.lowess = cbind(mapped.metadata %>% select(Plot), lowess_dat)
-  #run anova
-  lowess.aov = aov(y ~ Plot + x + sin(2*pi*x/24) + cos(2*pi*x/24), data = full_dat.lowess)
-  coefs.lowess = summary(lowess.aov)
-  total.var = sum(coefs.lowess[[1]][,2])
-  #add to list 
-  coefs.list.en[[temp_tax]] = data.frame(
-    #cat = temp_tax, 
-    plot = coefs.lowess[[1]][1,2]/total.var, 
-    trend = coefs.lowess[[1]][2,2]/total.var,
-    cycle = (coefs.lowess[[1]][3,2] + coefs.lowess[[1]][4,2])/total.var,
-    resid = coefs.lowess[[1]][5,2]/total.var,
-    total.ssq = total.var,
-    plot.p = ifelse(coefs.lowess[[1]][1,5] < 0.05, "sig", "n.s"),
-    trend.p = ifelse(coefs.lowess[[1]][2,5] < 0.05, "sig", "n.s"),
-    cycle.p = ifelse(coefs.lowess[[1]][3,5] < 0.05, "sig", "n.s")
-  )
-}
-
-coefs.en.lowess.df = bind_rows(coefs.list.en, .id = "cat")
-coefs.lowess.df = coefs.en.lowess.df
+colnames(taxon_names)[1] = "cat"
+coefs.lowess.df = left_join(coefs.lowess.df, taxon_names, by = "cat")
 
 ########################################
 #Set up for plotting (cluster and table)
@@ -310,16 +220,16 @@ coefs.lowess.df.ptc = coefs.lowess.df %>% select(plot, trend, cycle)
 coefs.lowess.df.ptc.c = hclust(coefs.lowess.df.ptc %>% scale %>% dist, method = "ward.D")
 #ordering vector for cat
 clust_order = coefs.lowess.df.ptc.c$order
-cat_order = coefs.lowess.df[clust_order,] %>% pull(cat)
+cat_order = coefs.lowess.df[clust_order,] %>% pull(Genus_name)
 
 #set up df for heatmap
-coefs.lowess.df.ptc.p_vals = coefs.lowess.df %>% select(cat, plot.p, trend.p, cycle.p)
-coefs.lowess.df.ptc.coefs = coefs.lowess.df %>% select(cat, plot, trend, cycle)
+coefs.lowess.df.ptc.p_vals = coefs.lowess.df %>% select(Genus_name, plot.p, trend.p, cycle.p)
+coefs.lowess.df.ptc.coefs = coefs.lowess.df %>% select(Genus_name, plot, trend, cycle)
 
 coefs_df = left_join(
-    coefs.lowess.df.ptc.p_vals %>% pivot_longer(cols = c(-cat), names_to = "coef_sig", values_to = "sig"),
-    coefs.lowess.df.ptc.coefs %>% pivot_longer(cols = c(-cat), names_to = "coef_var", values_to = "var"),
-    by = c("cat") 
+    coefs.lowess.df.ptc.p_vals %>% pivot_longer(cols = c(-Genus_name), names_to = "coef_sig", values_to = "sig"),
+    coefs.lowess.df.ptc.coefs %>% pivot_longer(cols = c(-Genus_name), names_to = "coef_var", values_to = "var"),
+    by = c("Genus_name") 
   )
 
 #ordering vector for coefs
@@ -337,14 +247,14 @@ coefs_df$var %>% range
 p1 = ggplot(coefs_df, 
        aes(
          x = factor(coef_var, level = level_order), 
-         y = factor(cat, level = cat_order), 
+         y = factor(Genus_name, level = cat_order), 
          fill = var#, 
          #color = sig
          )
        ) +
   geom_tile() +
   #scale_color_manual(values = c("white", "black"), guide = "none") +
-  scale_fill_gradient2(low = "white", mid = "#3690c0", high = "#034e7b", midpoint = 0.35, limits = c(0, 0.76)) +
+  scale_fill_gradient2(low = "white", mid = "#3690c0", high = "#034e7b", midpoint = 0.315, limits = c(0, 0.655)) +
   labs(x = "Proportion variance") +
   my_gg_theme +
   theme(
@@ -361,9 +271,9 @@ p1
 ####################
 
 
-p2 = ggplot(top_50_OTUs,
+p2 = ggplot(top_50_genera,
        aes(
-         x = factor(cat, level = cat_order),
+         x = factor(Genus_name, level = cat_order),
          y = global_RA*100
        )
     ) +
@@ -380,27 +290,22 @@ p2
 #Plot cat colors
 ####################
 
-#a table of higher level classifications of the cats, e.g., kingdom for phyla, KEGG B class. for KO, substrate for GH
-cat_type = read.table("top_50_genera.phylum.txt", header = T, sep = "\t")
-
-OTUs.cat_type = left_join(top_50_OTUs, cat_type, by = "Tax_name")
-OTUs.cat_type$Phylum %>% as.factor %>% levels()
-
-#order phylq
+top_50_genera$Phy.Class.name %>% unique
+#order phyla
 phylum_order = c(
   "Actinobacteria", 
   "Bacteroidetes", 
+  "Firmicutes",
   "alpha-Proteobacteria",
   "beta-Proteobacteria",
-  "gamma-Proteobacteria"#,
-#  "Bacteria candidate phyla"
+  "gamma-Proteobacteria"
   )
 
-p3 = ggplot(OTUs.cat_type,
+p3 = ggplot(top_50_genera,
        aes(
-         x = factor(cat, level = cat_order),
+         x = factor(Genus_name, level = cat_order),
          y = rep(1, length(cat_order)),
-         fill = factor(Phylum, level = phylum_order)
+         fill = factor(Phy.Class.name, level = phylum_order)
        )
     ) +
   geom_raster() +
@@ -432,7 +337,7 @@ p4 = ggplot(lowess.adonis.coefs.long,
               )
             ) + 
   geom_tile() +
-  scale_fill_gradient2(low = "white", mid = "#3690c0", high = "#034e7b", midpoint = 0.35, limits = c(0, 0.76),
+  scale_fill_gradient2(low = "white", mid = "#3690c0", high = "#034e7b", midpoint = 0.315, limits = c(0, 0.655),
                        guide = "none"
                        ) +
   #coord_flip() +
@@ -512,7 +417,7 @@ gp123 = cbind(gp12, gp3)
 
 plot(gp123)
 
-pdf("summary_figs.20_gene.pdf", width = 16, height = 12)
+pdf("summary_figs.20_gene.genus_summary.pdf", width = 16, height = 12)
 grid::grid.draw(gp123)
 dev.off()
 

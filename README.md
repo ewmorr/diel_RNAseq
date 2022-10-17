@@ -15,7 +15,7 @@ cp P2T30_metag/3300028585/3300028585.a.fna P2T30_metag/contigs.fna
 cp P2T30_metag/3300028585/3300028585.a.gff P2T30_metag/gene_calls.gff
 ```
 
-#Extract only calls for CDS to remove ribosomal sequenecs etc
+#Extract only calls for CDS to remove ribosomal sequeneces etc
 
 ```
 grep "CDS" P1_metaG/gene_calls.gff > P1_metaG/gene_calls.CDS.gff
@@ -72,11 +72,23 @@ qsub ~/diel_RNAseq/join_ann_tables.sh
 ```
 #### This same workflow or similar applies for both coverage based and read count based mapping
 
-#### Also mapping metagenomes as of 09072022 for new figs using SLURm server
+#### Also mapping metagenomes as of 09072022 for new figs using SLURM server
 ```
 sbatch ~/diel_RNAseq/map_diel_dNA_to_genes_read_counts.sh
 ```
 #### Will need to follow perl pipeline above to get annotation tables
+```
+cd martiny_diel_metagenomes
+mkdir read_counts
+mv P1T30 read_counts/
+mv P2T30 read_counts/
+mv P3T30 read_counts/
+```
+First moved dirs to separate dir to mae automating easier (the join_ann_tables.pl script is hardcoded to work on a dir)
+```
+
+qsub ~/diel_RNAseq/sum_read_counts_by_single_annotation.sh
+```
 
 
 #Get read mapping totals and total reads
