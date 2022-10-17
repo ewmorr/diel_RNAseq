@@ -74,7 +74,7 @@ qsub ~/diel_RNAseq/join_ann_tables.sh
 
 #### Also mapping metagenomes as of 09072022 for new figs using SLURM server
 ```
-sbatch ~/diel_RNAseq/map_diel_dNA_to_genes_read_counts.sh
+sbatch ~/repo/diel_RNAseq/map_diel_dNA_to_genes_read_counts.sh
 ```
 #### Will need to follow perl pipeline above to get annotation tables
 ```
@@ -86,8 +86,7 @@ mv P3T30 read_counts/
 ```
 First moved dirs to separate dir to mae automating easier (the join_ann_tables.pl script is hardcoded to work on a dir)
 ```
-
-qsub ~/diel_RNAseq/sum_read_counts_by_single_annotation.sh
+sbatch ~/repo/diel_RNAseq/sum_read_counts_by_single_annotation.metaG_all_anns.sh
 ```
 
 
