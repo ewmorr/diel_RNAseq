@@ -84,9 +84,9 @@ mv P1T30 read_counts/
 mv P2T30 read_counts/
 mv P3T30 read_counts/
 ```
-First moved dirs to separate dir to mae automating easier (the join_ann_tables.pl script is hardcoded to work on a dir)
+First moved dirs to separate dir to make automating easier (the join_ann_tables.pl script is hardcoded to work on a dir)
 ```
-sbatch ~/repo/diel_RNAseq/sum_read_counts_by_single_annotation.metaG_all_anns.sh
+sbatch ~/repo/diel_RNAseq/read_mapping_and_annotation/sum_read_counts_by_single_annotation.metaG_all_anns.sh
 ```
 
 

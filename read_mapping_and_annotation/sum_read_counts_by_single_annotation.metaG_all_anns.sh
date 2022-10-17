@@ -19,7 +19,7 @@ do
     perl $repo_dir/sum_read_counts_by_GH_annotation.pl $i/reads_per_contig.txt \
     $ann_dir/P1P2P3_GH_mapping.txt > $i/read_counts.GH.metaG
     
-    perl $repo_dir/diel_RNAseq/sum_read_counts_by_20_gene_taxonomy_annotation.pl $i/reads_per_contig.txt \
+    perl $repo_dir/sum_read_counts_by_20_gene_taxonomy_annotation.pl $i/reads_per_contig.txt \
     $ann_dir/metagenome_markers2taxonomy_03192020.txt > $i/read_counts.20_gene_taxonomy.metaG
     
 done
